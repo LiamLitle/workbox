@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400">
+    <title>WorkBox — Atelier Caliper</title>
+    <link rel="stylesheet" href="popup.css">
+    <meta name="description"
+        content="WorkBox — Precision toolbox for Chrome: local clipboard manager, calculator, markdown notes, color inspector, password generator, unit converter.">
+    <meta name="theme-color" content="#f07824">
+</head>
+
+<body class="app-loading">
+
+    <!-- Atelier Header Strip -->
+    <header class="header">
+        <div class="header-brand">
+            <div class="header-logo">
+                <span class="header-logo-icon">⚡</span>
+                <span>WorkBox</span>
+            </div>
+            <span class="header-badge">v1.0.3 · Local</span>
+        </div>
+        <div class="header-meta">
+            <button class="settings-gear-btn" id="settingsOpenBtn" title="System Settings" aria-label="Open settings">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========== APP LOCK SCREEN ========== -->
+    <div class="settings-modal-overlay" id="appLockOverlay" style="z-index:10000; flex-direction:column; justify-content:center; align-items:center;">
+        <div style="text-align:center; max-width:290px; width:100%;">
+            <div style="font-size:36px; margin-bottom:12px;">🔒</div>
+            <h2 style="font-family:var(--font-mono); font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">WorkBox Locked</h2>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:16px;">Authentication required to decrypt local storage.</p>
+            <input type="password" id="appLockInput" placeholder="Master password..." style="width:100%; margin-bottom:10px; text-align:center; letter-spacing:2px;">
+            <button class="btn btn-primary btn-block" id="appLockUnlockBtn">Unlock System</button>
+            <div id="appLockError" style="color:var(--status-err); font-family:var(--font-mono); font-size:10px; margin-top:8px; min-height:16px; opacity:0; transition:0.2s;">Incorrect credentials</div>
+
+            <!-- Forgot password -->
+            <button id="appLockForgotBtn" style="margin-top:14px; background:none; border:none; color:var(--text-dim); font-family:var(--font-mono); font-size:10px; cursor:pointer; text-decoration:underline;">Forgot password?</button>
+            <div id="appLockForgotPanel" style="display:none; margin-top:12px; padding:12px; background:var(--bg-field); border:1px solid var(--border-machined); border-radius:var(--radius-sm); text-align:left;">
+                <p style="font-size:11px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
+                    🔑 <strong>Emergency Recovery</strong><br>
+                    Enter the one-time master recovery key.
+                </p>
+                <input type="text" id="appLockRecoveryInput" placeholder="XXXX-XXXX-XXXX" style="margin-bottom:8px; text-align:center; letter-spacing:2px;">
+                <button class="btn btn-primary btn-block" id="appLockRecoveryBtn" style="font-size:11px;">Reset Master Key</button>
+                <div id="appLockRecoveryError" style="color:var(--status-err); font-family:var(--font-mono); font-size:10px; margin-top:6px; min-height:14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RECOVERY CODE MODAL ========== -->
+    <div class="settings-modal-overlay" id="recoveryCodeOverlay" style="z-index:10001;">
+        <div class="settings-modal" style="max-width:320px; text-align:center;">
+            <div style="font-size:32px; margin-bottom:8px;">🔐</div>
+            <h3 style="font-family:var(--font-mono); font-size:14px; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Master Key Generated</h3>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:14px; line-height:1.4;">
+                Store your <strong style="color:var(--text-lead);">Emergency Recovery Code</strong> in a secure location.
+            </p>
+
+            <div id="recoveryCodeDisplay" style="
+                background: var(--bg-field);
+                border: 1px dashed var(--accent);
+                border-radius: var(--radius-sm);
+                padding: 12px;
+                font-family: var(--font-mono);
+                font-size: 18px;
+                font-weight: 800;
+                letter-spacing: 3px;
+                color: var(--accent-light);
+                margin-bottom: 12px;
+                word-break: break-all;
+            ">----</div>
+
+            <button id="recoveryCodeCopyBtn" class="btn btn-secondary btn-block" style="margin-bottom:8px; font-size:11px;">
+                📋 Copy Master Code
+            </button>
+
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--status-warn); background:rgba(247,183,49,0.08); border:1px solid rgba(247,183,49,0.25); border-radius:var(--radius-xs); padding:6px; margin-bottom:14px;">
+                ⚠️ This key is displayed only once.
+            </div>
+
+            <button id="recoveryCodeCloseBtn" class="btn btn-primary btn-block">
+                Confirmed & Saved
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== ACTION CONFIRM MODAL ========== -->
+    <div class="settings-modal-overlay" id="passwordConfirmModalOverlay" style="z-index:10002;">
+        <div class="settings-modal" style="max-width:300px; text-align:center;">
+            <div style="font-size:30px; margin-bottom:8px;">🛡️</div>
+            <h3 id="passwordConfirmTitle" style="font-family:var(--font-mono); font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Restricted Action</h3>
+            <p id="passwordConfirmDesc" style="font-size:11px; color:var(--text-dim); margin-bottom:14px; line-height:1.4; white-space: pre-line;">
+                Please authenticate to continue.
+            </p>
+            <div id="passwordConfirmInputWrapper" style="display:none; margin-bottom:14px;">
+                <input type="password" id="passwordConfirmInput" placeholder="Password..." style="text-align:center;">
+                <div id="passwordConfirmError" style="color:var(--status-err); font-family:var(--font-mono); font-size:10px; margin-top:6px; min-height:14px; opacity:0;">Incorrect password</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button id="passwordConfirmCancelBtn" class="btn btn-secondary" style="flex:1;">Cancel</button>
+                <button id="passwordConfirmOkBtn" class="btn btn-primary" style="flex:1;">Authorize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal-overlay" id="settingsOverlay">
+        <div class="settings-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="font-family:var(--font-mono); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin:0;">⚙️ System Config</h3>
+                <button class="settings-close-btn" id="settingsCloseBtn" aria-label="Close">✕</button>
+            </div>
+
+            <div class="card" style="margin-bottom: 12px;">
+                <div class="section-title">Data Transport & Backups</div>
+                <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px; line-height:1.4;">
+                    Export all offline notes, clipboard history, tasks, and palettes for local archive or device migration.
+                </p>
+
+                <div style="font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:4px;">EXPORT</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;">
+                    <button class="btn btn-primary btn-sm" id="copySecretKeyBtn">🔗 Copy Encrypted Link</button>
+                    <button class="btn btn-secondary btn-sm" id="exportJsonFileBtn">📄 Raw .JSON File</button>
+                </div>
+
+                <div style="font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:4px;">IMPORT</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                    <button class="btn btn-secondary btn-sm" id="importSecretKeyBtn">🔗 From Link</button>
+                    <button class="btn btn-secondary btn-sm" id="importJsonFileBtn">📄 From File</button>
+                    <input type="file" id="importJsonFileInput" accept="application/json" style="display:none;">
+                </div>
+
+                <div style="margin-top: 10px; padding: 6px 8px; border-left: 2px solid var(--status-ok); font-family:var(--font-mono); font-size: 9.5px; color: var(--status-ok); line-height: 1.4; background: rgba(32,191,107,0.06);">
+                    100% Local Execution · Zero telemetry · Incremental import.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Security & Master Passcode</div>
+                <div id="appLockStatusBanner" style="display:none;"></div>
+                <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">
+                    Restrict extension access with local encryption.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <input type="password" id="appLockSettingsInput" placeholder="New master passcode (min. 4 chars.)">
+                    <button class="btn btn-primary btn-block btn-sm" id="appLockSaveBtn">Set Passcode</button>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm" id="appLockRemoveBtn" style="color: var(--status-err); display: none; margin-top: 8px;">Disable Master Lock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panels Container -->
+    <main class="panels-container">
+
+        <!-- ========== 1. CLIPBOARD ========== -->
+        <div class="panel active" id="panel-clipboard">
+            <div class="clipboard-top-actions">
+                <div class="clip-search-wrapper">
+                    <span class="search-icon" aria-hidden="true"
+                        style="position: absolute; left: 10px; width: 14px; height: 14px; background-color: var(--text-dim); -webkit-mask-image: url('icons/svg/presse%20papier/loupe.svg'); mask-image: url('icons/svg/presse%20papier/loupe.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></span>
+                    <input type="text" id="clipSearch" placeholder="Search clipboard..." aria-label="Search clipboard history">
+                </div>
+                <button class="btn btn-secondary btn-icon" id="clipInfoBtn" title="Inspect supported types" aria-label="Supported categories">
+                    <span style="font-size:14px;" aria-hidden="true">ⓘ</span>
+                </button>
+                <button class="btn btn-primary btn-icon" id="clipPasteBtn" title="Paste current system clipboard" aria-label="Paste from clipboard">
+                    <span aria-hidden="true"
+                        style="display:inline-block; width:15px; height:15px; background-color:currentColor; -webkit-mask-image: url('icons/svg/presse%20papier/copier.svg'); mask-image: url('icons/svg/presse%20papier/copier.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;"></span>
+                </button>
+                <button class="btn btn-secondary btn-icon" id="clipClearBtn" title="Purge text history" aria-label="Clear text history">
+                    <span aria-hidden="true"
+                        style="display:inline-block; width:15px; height:15px; background-color:currentColor; -webkit-mask-image: url('icons/svg/presse%20papier/delete.svg'); mask-image: url('icons/svg/presse%20papier/delete.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;"></span>
+                </button>
+            </div>
+
+            <!-- Date Filter Row -->
+            <div style="display:flex; gap: 6px; margin-bottom: 8px; align-items:center;">
+                <select id="clipDateFilter" class="clip-date-select">
+                    <option value="all">📅 All Time Records</option>
+                    <option value="1h">⏱️ Past 60 Minutes</option>
+                    <option value="today">🗓️ Today</option>
+                    <option value="yesterday">📆 Yesterday</option>
+                    <option value="week">📆 Past 7 Days</option>
+                    <option value="month">🗓️ Past 30 Days</option>
+                    <option value="custom">🔍 Custom Range...</option>
+                </select>
+                <input type="datetime-local" id="clipDateCustom" class="clip-date-input" style="display:none;">
+            </div>
+
+            <div class="clip-tabs" id="clipTabs">
+                <button class="clip-tab-btn active" data-cliptab="text">📝 Text <span id="clipCountText" class="clip-tab-count">0</span></button>
+                <button class="clip-tab-btn" data-cliptab="image">🖼️ Images <span id="clipCountImage" class="clip-tab-count">0</span></button>
+                <button class="clip-tab-btn" data-cliptab="pinned">📌 Pinned <span id="clipCountPinned" class="clip-tab-count">0</span></button>
+            </div>
+
+            <div class="clipboard-categories" id="clipCategories"></div>
+
+            <div class="clip-list" id="clipList">
+                <div class="clip-empty">Clipboard buffer empty</div>
+            </div>
+
+            <div id="clipImageContainer" style="display:none; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-sm" id="exportImagesZipBtn" style="flex:1;">📦 Export ZIP Archive</button>
+                    <button class="btn btn-secondary btn-sm" id="clearImagesHistoryBtn" style="flex:1; color:var(--status-err);">Clear Image Buffer</button>
+                </div>
+                <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); text-align:center;">🗜️ Lossless in-memory compression enabled</div>
+                <div class="clip-image-list" id="clipImageList">
+                    <div class="clip-empty">No image records stored</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 2. CALCULATOR ========== -->
+        <div class="panel" id="panel-calculator">
+            <div class="calc-display">
+                <div class="calc-expression" id="calcExpr"></div>
+                <div class="calc-result" id="calcResult">0</div>
+                <div class="calc-kbd-hint">Keyboard active · <kbd>Enter</kbd> = eval · <kbd>Esc</kbd> = clear</div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <input type="text" id="calcInputField" placeholder="Expression, e.g. (150 * 20) + 12.5"
+                       style="padding: 10px 12px; font-size: 15px;">
+            </div>
+
+            <!-- Numeric Keypad -->
+            <div class="calc-grid" id="calcGrid" style="margin-bottom: 12px;">
+                <button class="calc-btn fn" data-calc="clear">C</button>
+                <button class="calc-btn fn" data-calc="backspace">⌫</button>
+                <button class="calc-btn fn" data-calc="insert" data-val="%">%</button>
+                <button class="calc-btn op" data-calc="insert" data-val="÷">÷</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="7">7</button>
+                <button class="calc-btn num" data-calc="insert" data-val="8">8</button>
+                <button class="calc-btn num" data-calc="insert" data-val="9">9</button>
+                <button class="calc-btn op" data-calc="insert" data-val="×">×</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="4">4</button>
+                <button class="calc-btn num" data-calc="insert" data-val="5">5</button>
+                <button class="calc-btn num" data-calc="insert" data-val="6">6</button>
+                <button class="calc-btn op" data-calc="insert" data-val="−">−</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="1">1</button>
+                <button class="calc-btn num" data-calc="insert" data-val="2">2</button>
+                <button class="calc-btn num" data-calc="insert" data-val="3">3</button>
+                <button class="calc-btn op" data-calc="insert" data-val="+">+</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="0">0</button>
+                <button class="calc-btn num" data-calc="insert" data-val=".">.</button>
+                <button class="calc-btn eq" data-calc="submit" style="grid-column: span 2;">=</button>
+            </div>
+
+            <!-- Calc History -->
+            <div class="card calc-history">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                    <div class="section-title" style="margin:0;">Calculation Ledger</div>
+                    <button class="btn btn-secondary btn-sm" id="calcClearHistBtn" style="font-size:9.5px; padding:2px 6px;">Clear</button>
+                </div>
+                <div class="calc-history-list" id="calcHistory"></div>
+            </div>
+        </div>
+
+        <!-- ========== 3. NOTES & TODO ========== -->
+        <div class="panel" id="panel-notes">
+            <div class="notes-todo-switcher">
+                <button class="nt-switch-btn active" id="btnViewNotes">📝 Markdown Notes</button>
+                <button class="nt-switch-btn" id="btnViewTodo">✅ Action Tasks</button>
+            </div>
+
+            <!-- ================= NOTES VIEW ================= -->
+            <div id="notesView" class="nt-view active-view">
+                <div class="note-search-row">
+                    <input type="text" id="noteSearch" placeholder="Filter notes index…" aria-label="Search notes">
+                </div>
+
+                <div class="note-tabs" id="noteTabs">
+                    <button class="note-tab-add" id="noteAllBtn" title="Show Index Registry">☰</button>
+                    <div class="note-tabs-scroll" id="noteTabsScroll"></div>
+                    <button class="note-tab-add" id="noteAddBtn" title="Create Note">＋</button>
+                </div>
+
+                <!-- Markdown Toolbar -->
+                <div class="note-toolbar">
+                    <button class="note-tool-btn" id="noteBoldBtn" title="Bold (**text**)">𝐁</button>
+                    <button class="note-tool-btn" id="noteItalicBtn" title="Italic (*text*)">𝐼</button>
+                    <button class="note-tool-btn" id="noteCodeBtn" title="Inline Code (`code`)">`</button>
+                    <div class="note-tool-sep"></div>
+                    <button class="note-tool-btn" id="noteH1Btn" title="Heading 1">H1</button>
+                    <button class="note-tool-btn" id="noteH2Btn" title="Heading 2">H2</button>
+                    <button class="note-tool-btn" id="noteListBtn" title="Bullet List">•≡</button>
+                    <button class="note-tool-btn" id="noteQuoteBtn" title="Blockquote">&gt;</button>
+                    <div class="note-tool-sep"></div>
+                    <button class="note-tool-btn" id="noteMdToggle" title="Rendered Markdown Preview">👁</button>
+                    <div style="flex:1"></div>
+                    <button class="note-tool-btn" id="noteDeleteBtn" title="Purge this note" style="color:var(--status-err);">🗑</button>
+                </div>
+
+                <textarea class="note-textarea" id="noteArea"
+                    placeholder="# Note Title&#10;Write markdown documentation here..."></textarea>
+
+                <div class="note-preview" id="notePreviewArea" style="display:none;"></div>
+
+                <!-- Context Menu -->
+                <div class="note-context-menu" id="noteContextMenu">
+                    <button id="noteCtxPin">📌 Pin to Top</button>
+                    <button id="noteCtxRename" style="color:var(--accent-light);">✏️ Rename</button>
+                    <div style="display:flex; gap:6px; padding:4px 8px; align-items:center; background:var(--bg-field); border-radius:var(--radius-xs);">
+                        <div class="note-color-opt" data-color="" style="width:14px;height:14px;border-radius:50%;border:1px dashed var(--text-dim);cursor:pointer;" title="Neutral"></div>
+                        <div class="note-color-opt" data-color="rgba(240,120,36,0.3)" style="width:14px;height:14px;border-radius:50%;background:rgba(240,120,36,0.3);border:1px solid var(--accent);cursor:pointer;" title="Amber"></div>
+                        <div class="note-color-opt" data-color="rgba(32,191,107,0.3)" style="width:14px;height:14px;border-radius:50%;background:rgba(32,191,107,0.3);border:1px solid var(--status-ok);cursor:pointer;" title="Green"></div>
+                        <div class="note-color-opt" data-color="rgba(235,59,90,0.3)" style="width:14px;height:14px;border-radius:50%;background:rgba(235,59,90,0.3);border:1px solid var(--status-err);cursor:pointer;" title="Red"></div>
+                    </div>
+                    <button id="noteCtxExportTxt">📄 Export .txt</button>
+                    <button id="noteCtxExportMd">📝 Export .md</button>
+                    <button id="noteCtxDelete" style="color:var(--status-err);">🗑 Delete</button>
+                </div>
+
+                <div class="note-statusbar">
+                    <span class="note-status" id="noteStatus">Buffer Synced</span>
+                    <span class="note-stats" id="noteStats">0 words · 0 chars</span>
+                </div>
+            </div>
+
+            <!-- ================= TODO VIEW ================= -->
+            <div id="todoView" class="nt-view" style="display:none;">
+                <div class="todo-topbar">
+                    <span class="todo-count" id="todoCount">0 tasks pending</span>
+                    <div style="display:flex; gap:4px;">
+                        <button class="btn btn-secondary btn-sm" id="todoSortBtn" title="Sort by Priority">↕ Priority</button>
+                        <button class="btn btn-secondary btn-sm" id="todoClearAllBtn" title="Purge Tasks" style="color:var(--status-err);">Clear</button>
+                    </div>
+                </div>
+
+                <div class="todo-search-row">
+                    <input type="text" id="todoSearch" class="todo-input" placeholder="Search tasks ledger…" aria-label="Search a task">
+                </div>
+
+                <div class="todo-filters">
+                    <button class="todo-filter-btn active" data-filter="all">All</button>
+                    <button class="todo-filter-btn" data-filter="pending">Pending</button>
+                    <button class="todo-filter-btn" data-filter="done">Completed</button>
+                    <button class="todo-filter-btn" data-filter="high">🔴 Urgent</button>
+                </div>
+
+                <div class="todo-add-row">
+                    <input type="text" id="todoInput" class="todo-input" placeholder="New action item… (Enter to commit)">
+                    <select id="todoPrioritySelect" class="todo-priority-select" title="Priority Weight">
+                        <option value="normal">STD</option>
+                        <option value="high">🔴 HIGH</option>
+                        <option value="medium">🟡 MED</option>
+                        <option value="low">🟢 LOW</option>
+                    </select>
+                </div>
+
+                <div class="todo-list-wrap" id="todoListWrap"></div>
+
+                <div class="todo-footer">
+                    <span id="todoStats">0/0 completed</span>
+                    <button class="todo-clear-done-btn" id="todoClearCompletedBtn">Flush completed</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 4. COLOR PICKER ========== -->
+        <div class="panel" id="panel-colorpicker">
+            <div class="color-preview-area">
+                <div class="color-input-wrapper" title="Color swatch selection">
+                    <input type="color" id="colorInput" value="#f07824">
+                </div>
+                <button class="color-eyedrop-btn" id="colorEyedropperBtn" title="Screen Eyedropper Inspector">🎨</button>
+                <div class="color-codes">
+                    <div class="color-code-row" data-copy="hex">
+                        <span class="color-code-label">HEX</span>
+                        <span class="color-code-value" id="colorHex">#F07824</span>
+                    </div>
+                    <div class="color-code-row" data-copy="rgb">
+                        <span class="color-code-label">RGB</span>
+                        <span class="color-code-value" id="colorRgb">rgb(240, 120, 36)</span>
+                    </div>
+                    <div class="color-code-row" data-copy="hsl">
+                        <span class="color-code-label">HSL</span>
+                        <span class="color-code-value" id="colorHsl">hsl(25, 87%, 54%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Palettes -->
+            <div class="card" style="margin-bottom:10px;">
+                <div class="section-title">Reference Palettes</div>
+                <div class="color-palette-tabs" id="paletteTabs">
+                    <button class="cat-tag active" data-palette="material">Material</button>
+                    <button class="cat-tag" data-palette="pastel">Pastel</button>
+                    <button class="cat-tag" data-palette="neon">Neon</button>
+                    <button class="cat-tag" data-palette="dark">Dark</button>
+                </div>
+                <div class="color-palette-grid" id="paletteGrid"></div>
+            </div>
+
+            <!-- Pinned & History -->
+            <div id="colorPinnedSection" style="display: none;" class="card">
+                <div class="section-title">Pinned Standards</div>
+                <div class="color-history-grid" id="colorPinned"></div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Recent Samplings</div>
+                <div class="color-history-grid" id="colorHistory"></div>
+            </div>
+        </div>
+
+        <!-- ========== 5. PASSWORD GENERATOR ========== -->
+        <div class="panel" id="panel-password">
+            <div class="pw-output-box" id="pwOutputsList">
+                <div class="pw-output-row">
+                    <span class="pw-output" id="pwOutput">Click Generate</span>
+                    <button class="btn btn-secondary btn-icon pw-copy-btn" id="pwCopyBtn" title="Copy to Clipboard">📋</button>
+                </div>
+            </div>
+
+            <div class="pw-strength-bar">
+                <div class="pw-strength-fill" id="pwStrengthFill"></div>
+            </div>
+            <span class="pw-strength-label" id="pwStrengthLabel" style="color: var(--text-dim);">Entropy Rating: —</span>
+
+            <div class="pw-option-group">
+                <div class="pw-slider-row">
+                    <label>Length</label>
+                    <input type="range" id="pwLength" min="3" max="128" value="20">
+                    <span class="pw-length-val" id="pwLengthVal">20</span>
+                </div>
+
+                <div class="pw-slider-row">
+                    <label>Batch Qty</label>
+                    <select id="pwQuantity" class="pw-select" style="padding:4px 8px; font-size:12px;">
+                        <option value="1">1 Token</option>
+                        <option value="2">2 Tokens</option>
+                        <option value="3">3 Tokens</option>
+                        <option value="4">4 Tokens</option>
+                        <option value="5">5 Tokens</option>
+                    </select>
+                </div>
+
+                <div class="pw-checks">
+                    <label class="pw-check-label"><input type="checkbox" id="pwUpper" checked> Uppercase (A-Z)</label>
+                    <label class="pw-check-label"><input type="checkbox" id="pwLower" checked> Lowercase (a-z)</label>
+                    <label class="pw-check-label"><input type="checkbox" id="pwDigits" checked> Digits (0-9)</label>
+                    <label class="pw-check-label"><input type="checkbox" id="pwSymbols" checked> Symbols (!@#$)</label>
+                    <label class="pw-check-label"><input type="checkbox" id="pwExcludeSimilar"> No ambiguous (0O1l)</label>
+                    <label class="pw-check-label"><input type="checkbox" id="pwAutoCopy" checked> Auto Copy</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="pwGenerateBtn">⚡ Generate Entropy</button>
+
+            <div class="card" style="margin-top: 12px;">
+                <div class="section-title">Generation Ledger</div>
+                <div class="pw-history-list" id="pwHistoryList">
+                    <div class="clip-empty">No history recorded</div>
+                </div>
+                <button class="btn btn-secondary btn-block btn-sm" id="pwClearHistoryBtn" style="margin-top: 6px;">Clear Ledger</button>
+            </div>
+        </div>
+
+        <!-- ========== 6. UNIT CONVERTER ========== -->
+        <div class="panel" id="panel-converter">
+            <div style="margin-bottom: 10px;">
+                <select id="convCategorySelect" class="conv-cat-select"></select>
+            </div>
+
+            <div class="conv-stack">
+                <div class="conv-line">
+                    <select id="convUnitA" class="conv-unit-select"></select>
+                    <div class="conv-input-wrap">
+                        <input type="text" inputmode="decimal" id="convInputA" placeholder="0" value="" autocomplete="off">
+                        <button type="button" class="btn btn-secondary btn-icon" id="convCopyA" title="Copy">📋</button>
+                    </div>
+                </div>
+
+                <button class="conv-swap-btn" id="convSwapBtn" title="Invert Directions">⇅</button>
+
+                <div class="conv-line">
+                    <select id="convUnitB" class="conv-unit-select"></select>
+                    <div class="conv-input-wrap">
+                        <input type="text" inputmode="decimal" id="convInputB" placeholder="0" value="" autocomplete="off">
+                        <button type="button" class="btn btn-secondary btn-icon" id="convCopyB" title="Copy">📋</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-rate-info" id="convRateInfo"></div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:2px;">
+                <span class="conv-rate-freshness" id="convRateFreshness" style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim);"></span>
+                <button type="button" id="convRefreshRatesBtn" title="Refresh Live Spot Rates"
+                    style="display:none; background:none; border:none; cursor:pointer; font-size:11px; color:var(--accent-light);">🔄</button>
+            </div>
+
+            <div class="conv-currency-table" id="convCurrencyTable" style="display:none; margin-top:10px;">
+                <input type="text" class="conv-country-search" id="convCountrySearch"
+                    placeholder="🔍 Search currencies or ISO codes...">
+                <div class="conv-country-list" id="convCountryList"></div>
+            </div>
+        </div>
+
+        <!-- ========== 7. TIMER & STOPWATCH ========== -->
+        <div class="panel" id="panel-timer">
+            <div class="tmr-tab-row">
+                <button class="tmr-tab active" id="tmrTabTimer">⏱ Precision Timer</button>
+                <button class="tmr-tab" id="tmrTabStopwatch">🕐 Stopwatch</button>
+            </div>
+
+            <!-- ── TIMER VIEW ── -->
+            <div id="tmrView">
+                <div class="tmr-display" id="tmrDisplay">
+                    <span class="roll-group" id="tmrMainGroup">00:05:00</span><span class="tmr-ms-sep">.</span><span class="tmr-ms" id="tmrMsGroup">00</span>
+                </div>
+
+                <div class="tmr-progress-bar"><div class="tmr-progress-fill" id="tmrProgressFill"></div></div>
+
+                <div class="tmr-input-row">
+                    <input type="number" class="tmr-field" id="tmrHours" min="0" max="99" value="0" placeholder="hh">
+                    <span class="tmr-sep">:</span>
+                    <input type="number" class="tmr-field" id="tmrMinutes" min="0" max="59" value="5" placeholder="mm">
+                    <span class="tmr-sep">:</span>
+                    <input type="number" class="tmr-field" id="tmrSeconds" min="0" max="59" value="0" placeholder="ss">
+                </div>
+
+                <div class="tmr-presets">
+                    <button class="tmr-preset" data-h="0" data-m="1"  data-s="0">1 min</button>
+                    <button class="tmr-preset" data-h="0" data-m="5"  data-s="0">5 min</button>
+                    <button class="tmr-preset" data-h="0" data-m="10" data-s="0">10 min</button>
+                    <button class="tmr-preset" data-h="0" data-m="25" data-s="0">🍅 25 min</button>
+                    <button class="tmr-preset" data-h="0" data-m="30" data-s="0">30 min</button>
+                    <button class="tmr-preset" data-h="1" data-m="0"  data-s="0">1 hr</button>
+                </div>
+
+                <div class="tmr-controls">
+                    <button class="btn tmr-btn tmr-btn-reset" id="tmrResetBtn" title="Reset">↺ Reset</button>
+                    <button class="btn tmr-btn tmr-btn-start" id="tmrStartBtn">▶ Start</button>
+                </div>
+            </div>
+
+            <!-- ── STOPWATCH VIEW ── -->
+            <div id="swView" style="display:none;">
+                <div class="tmr-display" id="swDisplay">
+                    <span class="roll-group" id="swMainGroup">00:00:00</span><span class="tmr-ms-sep">.</span><span class="tmr-ms" id="swMsGroup">00</span>
+                </div>
+                <div class="sw-laps" id="swLaps"></div>
+                <div class="tmr-controls">
+                    <button class="btn tmr-btn tmr-btn-reset" id="swResetBtn" title="Reset">↺</button>
+                    <button class="btn btn-secondary" id="swLapBtn" title="Record Lap" style="flex:1;">🚩 Lap</button>
+                    <button class="btn tmr-btn tmr-btn-start" id="swStartBtn">▶ Start</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 8. MUSIC PLAYER ========== -->
+        <div class="panel" id="panel-music">
+            <div id="musicLocalView">
+                <div id="musicDropZone">
+                    <div style="font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--text-lead); margin-bottom:4px;">
+                        📂 Drag & drop local audio files
+                    </div>
+                    <div style="font-family:var(--font-mono); font-size:10px; color:var(--accent-light); letter-spacing:0.04em;">
+                        MP3 · WAV · MP4 · OGG · FLAC
+                    </div>
+                </div>
+                <input type="file" id="localFileInput" accept=".mp3,.wav,.mp4,.ogg,.flac" multiple style="display:none;">
+
+                <div class="section-title">Playlist Buffer (<span id="localPlaylistCount">0</span>)</div>
+                <div id="localPlaylist" style="max-height:160px; overflow-y:auto; margin-bottom:10px;">
+                    <div class="clip-empty">Playlist buffer unassigned</div>
+                </div>
+
+                <div id="localNowPlaying" style="display:none;" class="card">
+                    <div class="music-title" id="localNowTitle">—</div>
+
+                    <div class="music-progress-row">
+                        <span class="music-time" id="localTimeCurrent">0:00</span>
+                        <input type="range" id="localProgressBar" min="0" max="100" value="0">
+                        <span class="music-time" id="localTimeTotal">0:00</span>
+                    </div>
+
+                    <div class="music-controls">
+                        <button class="btn btn-secondary btn-icon" id="localPrevBtn" title="Previous Track">⏮</button>
+                        <button class="btn btn-primary btn-icon music-play-btn" id="localPlayBtn" title="Toggle Play/Pause">▶</button>
+                        <button class="btn btn-secondary btn-icon" id="localNextBtn" title="Next Track">⏭</button>
+                        <button class="btn btn-secondary btn-icon" id="localMuteBtn" title="Mute Output">🔊</button>
+                        <button class="btn btn-secondary btn-icon" id="localRepeatBtn" title="Toggle Repeat">🔁</button>
+                    </div>
+
+                    <div class="music-volume-row">
+                        <span style="font-size:11px; color:var(--text-dim);">🔈</span>
+                        <input type="range" id="localVolumeSlider" min="0" max="100" value="100">
+                        <span style="font-size:11px; color:var(--text-dim);">🔊</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary btn-block btn-sm" id="localClearPlaylistBtn" style="color:var(--status-err);">Flush Playlist</button>
+            </div>
+        </div>
+
+        <!-- ========== 9. TEXT EXPANDER ========== -->
+        <div class="panel" id="panel-expander">
+            <div class="card">
+                <div class="section-title">New String Macro</div>
+                <div style="margin-bottom: 8px;">
+                    <input type="text" id="expanderShortcut" placeholder="Trigger prefix, e.g. !mail">
+                </div>
+                <textarea id="expanderText" placeholder="Expansion replacement template..." rows="3" style="margin-bottom: 8px;"></textarea>
+                <button class="btn btn-primary btn-block" id="expanderAddBtn">➕ Register Shortcut</button>
+            </div>
+
+            <div class="section-title">Registered Macros (<span id="expanderCount">0</span>)</div>
+            <div id="expanderList" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto;">
+                <div class="clip-empty">No active macros defined</div>
+            </div>
+        </div>
+
+        <!-- ========== 10. QR SCANNER ========== -->
+        <div class="panel" id="panel-qr">
+            <div class="qr-hero" id="qrHero" tabindex="0">
+                <button class="qr-hero-btn" id="qrAreaSelectBtn">
+                    <span>🎯</span> Screen Region Scan
+                </button>
+            </div>
+            <div class="qr-alt-actions">
+                <button class="qr-alt-link" id="qrUploadLink">Import file</button>
+                <span style="color:var(--text-dim);">·</span>
+                <button class="qr-alt-link" id="qrPasteBtn">Paste clipboard image</button>
+            </div>
+            <input type="file" id="qrFileInput" accept="image/*" style="display:none;">
+
+            <div id="qrResultCard" class="qr-result-card" style="display:none;">
+                <div class="section-title">Decoded Payload</div>
+                <div class="qr-result-text" id="qrResultText"></div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-sm" id="qrCopyBtn">📄 Copy Text</button>
+                    <button class="btn btn-primary btn-sm" id="qrOpenBtn" style="display:none;">🔗 Open URL</button>
+                </div>
+            </div>
+            <div class="clip-empty" id="qrEmpty">Awaiting optical decode</div>
+        </div>
+
+        <!-- ========== 11. IMAGE COMPRESSOR ========== -->
+        <div class="panel" id="panel-compress">
+            <div id="compressDropZone">
+                <button class="btn btn-secondary btn-icon" id="compressInfoBtn" title="Supported Encoders" style="position:absolute; top:8px; right:8px; width:22px; height:22px; font-size:11px;">ⓘ</button>
+                <div style="font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--text-lead); margin-bottom:4px;">
+                    🗜️ Drop images or directory
+                </div>
+                <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim);">
+                    JPG · PNG · WEBP · SVG · TGA · PCX · PPM · 100% Client-Side
+                </div>
+            </div>
+            <button class="compress-folder-btn" id="compressFolderBtn">📁 Select Whole Folder</button>
+            <input type="file" id="compressFileInput" accept="image/*,.svg,.ppm,.pgm,.pbm,.pnm,.tga,.pcx" multiple style="display:none;">
+            <input type="file" id="compressFolderInput" webkitdirectory multiple style="display:none;">
+
+            <label style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-medium); cursor:pointer; margin-bottom:10px;">
+                <input type="checkbox" id="compressConvertToggle">
+                Convert to optimized JPEG stream where applicable
+            </label>
+
+            <div id="compressProgressWrap" style="display:none; margin: 10px 0;">
+                <div class="compress-progress-bar"><div class="compress-progress-fill" id="compressProgressFill"></div></div>
+                <div class="compress-progress-label" id="compressProgressLabel">Optimizing...</div>
+            </div>
+
+            <div class="section-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span>Compression Stream (<span id="compressCount">0</span>)</span>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-sm" id="compressClearBtn">Clear</button>
+                    <button class="btn btn-primary btn-sm" id="compressZipBtn" disabled>📦 Download ZIP</button>
+                </div>
+            </div>
+            <div id="compressSummary" class="compress-summary" style="display:none;"></div>
+            <div id="compressResultsList" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
+            <div class="clip-empty" id="compressEmpty">No image streams processed</div>
+        </div>
+
+        <!-- ========== 12. AI-FREE SEARCH ========== -->
+        <div class="panel" id="panel-aisearch">
+            <div class="card">
+                <div class="section-title">Direct Index Shield</div>
+                <p style="font-size: 11px; color: var(--text-dim); line-height: 1.4; margin-bottom: 10px;">
+                    Bypasses synthetic AI summaries on major search engines to prioritize direct canonical web links.
+                </p>
+                <button class="btn btn-secondary btn-block btn-sm" id="detectEngineBtn">Detect Default Engine</button>
+            </div>
+
+            <div class="card" style="padding: 4px 12px;">
+                <div class="ai-engine-row">
+                    <span class="ai-engine-icon"><img src="icons/svg/anti-ai/google.svg" alt="Google"></span>
+                    <div class="ai-engine-info">
+                        <div class="ai-engine-name">Google</div>
+                        <div class="ai-engine-desc">AI Overviews / Synthetic Blocks</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="settingBlockAiGoogle" checked><span class="switch-slider"></span></label>
+                </div>
+                <div class="ai-engine-row">
+                    <span class="ai-engine-icon" style="color:#00b7c3;"><span class="ai-engine-icon-mono" style="-webkit-mask-image:url('icons/svg/anti-ai/bing.svg'); mask-image:url('icons/svg/anti-ai/bing.svg');"></span></span>
+                    <div class="ai-engine-info">
+                        <div class="ai-engine-name">Bing</div>
+                        <div class="ai-engine-desc">Copilot Answers</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="settingBlockAiBing" checked><span class="switch-slider"></span></label>
+                </div>
+                <div class="ai-engine-row">
+                    <span class="ai-engine-icon"><img src="icons/svg/anti-ai/brave.svg" alt="Brave"></span>
+                    <div class="ai-engine-info">
+                        <div class="ai-engine-name">Brave Search</div>
+                        <div class="ai-engine-desc">AI Summarizer</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="settingBlockAiBrave" checked><span class="switch-slider"></span></label>
+                </div>
+                <div class="ai-engine-row">
+                    <span class="ai-engine-icon"><img src="icons/svg/anti-ai/duckduckgo.svg" alt="DuckDuckGo"></span>
+                    <div class="ai-engine-info">
+                        <div class="ai-engine-name">DuckDuckGo</div>
+                        <div class="ai-engine-desc">AI Assist Panels</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="settingBlockAiDuckDuckGo" checked><span class="switch-slider"></span></label>
+                </div>
+                <div class="ai-engine-row">
+                    <span class="ai-engine-icon"><img src="icons/svg/anti-ai/qwant.png" alt="Qwant"></span>
+                    <div class="ai-engine-info">
+                        <div class="ai-engine-name">Qwant</div>
+                        <div class="ai-engine-desc">Flash Answer</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="settingBlockAiQwant" checked><span class="switch-slider"></span></label>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Engine Configuration Shortcut</div>
+                <div id="browserPicker" style="display:flex; gap:4px; margin-bottom:8px;">
+                    <button class="cat-tag browser-tag active" data-browser="chrome">Chrome</button>
+                    <button class="cat-tag browser-tag" data-browser="brave">Brave</button>
+                    <button class="cat-tag browser-tag" data-browser="edge">Edge</button>
+                </div>
+                <div style="display:flex; gap:4px; align-items:center;">
+                    <input type="text" id="browserSettingsUrl" readonly value="chrome://settings/searchEngines"
+                        style="flex:1; font-size:11px; padding:6px 8px;">
+                    <button class="btn btn-secondary btn-icon" id="copyBrowserSettingsBtn" title="Copy URL">📋</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========== BOTTOM NAVIGATION DOCK ========== -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-tab="clipboard" title="Clipboard (Buffer)">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('icons/svg/menu/presse%20papier.svg'); mask-image: url('icons/svg/menu/presse%20papier.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="calculator" title="Calculator (Press .)">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('icons/svg/menu/calcul.svg'); mask-image: url('icons/svg/menu/calcul.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="notes" title="Notes & Action Tasks">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('icons/svg/menu/note.svg'); mask-image: url('icons/svg/menu/note.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="music" title="Audio Player">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('icons/svg/menu/music.svg'); mask-image: url('icons/svg/menu/music.svg');"></span>
+        </button>
+        <button class="nav-item nav-more-btn" id="gridMenuTrigger" title="Expand Full Tool Matrix">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="19" cy="12" r="2" />
+            </svg>
+        </button>
+    </nav>
+
+    <!-- ========== GRID OVERLAY MENU ========== -->
+    <div class="grid-overlay" id="gridOverlay">
+        <div class="grid-overlay-backdrop" id="gridOverlayBackdrop"></div>
+        <div class="grid-panel" id="gridPanel">
+            <div class="grid-header">
+                <span class="grid-title">Auxiliary Tool Matrix</span>
+                <button class="grid-close-btn" id="gridCloseBtn">&times;</button>
+            </div>
+            <div class="grid-items">
+                <button class="grid-item" data-tab="colorpicker">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('icons/svg/menu/color.svg'); mask-image: url('icons/svg/menu/color.svg');"></span>
+                    <span class="grid-label">Colors</span>
+                </button>
+                <button class="grid-item" data-tab="password">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('icons/svg/menu/mdp.svg'); mask-image: url('icons/svg/menu/mdp.svg');"></span>
+                    <span class="grid-label">Entropy</span>
+                </button>
+                <button class="grid-item" data-tab="converter">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('icons/svg/menu/convert.svg'); mask-image: url('icons/svg/menu/convert.svg');"></span>
+                    <span class="grid-label">Convert</span>
+                </button>
+                <button class="grid-item" data-tab="timer">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('icons/svg/menu/minuteur.svg'); mask-image: url('icons/svg/menu/minuteur.svg');"></span>
+                    <span class="grid-label">Timer</span>
+                </button>
+                <button class="grid-item" data-tab="expander">
+                    <span class="grid-icon" style="-webkit-mask-image: url('icons/svg/menu/note.svg'); mask-image: url('icons/svg/menu/note.svg');"></span>
+                    <span class="grid-label">Macros</span>
+                </button>
+                <button class="grid-item" data-tab="qr">
+                    <span class="grid-icon" style="-webkit-mask-image: url('icons/svg/menu/qr-code.svg'); mask-image: url('icons/svg/menu/qr-code.svg');"></span>
+                    <span class="grid-label">QR Optical</span>
+                </button>
+                <button class="grid-item" data-tab="compress">
+                    <span class="grid-icon" style="-webkit-mask-image: url('icons/svg/menu/compress.svg'); mask-image: url('icons/svg/menu/compress.svg');"></span>
+                    <span class="grid-label">Compress</span>
+                </button>
+                <button class="grid-item" data-tab="aisearch">
+                    <span class="grid-icon" style="-webkit-mask-image: url('icons/svg/menu/shield.svg'); mask-image: url('icons/svg/menu/shield.svg');"></span>
+                    <span class="grid-label">Shield</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals & Bubbles -->
+    <div class="modal-overlay" id="clipInfoModal">
+        <div class="modal-content info-bubble-content" style="max-height: 80vh; overflow-y: auto;">
+            <div class="section-title" style="margin-bottom:12px;">Type Detection Registry</div>
+            <div class="clip-info-list" style="font-size: 11.5px; color: var(--text-medium); line-height: 1.6; display:flex; flex-direction:column; gap:6px;">
+                <div>🔗 <b>Links:</b> URLs & canonical endpoints (YouTube, GitHub, Spotify...)</div>
+                <div>🎥 <b>Video:</b> Direct stream links & video assets</div>
+                <div>🖼️ <b>Images:</b> PNG, JPG, GIF, WebP, SVG data streams</div>
+                <div>🎨 <b>Color:</b> HEX, RGB, RGBA, HSL values</div>
+                <div>🔐 <b>API Keys:</b> OpenAI, GitHub, AWS, Slack, Stripe tokens</div>
+                <div>🔒 <b>Sensitive:</b> Passwords, emails, credentials</div>
+                <div>💻 <b>Code:</b> JS, TS, Python, HTML, CSS, SQL, JSON, YAML snippets</div>
+            </div>
+            <button class="btn btn-primary btn-block" id="clipInfoOkBtn" style="margin-top:14px;">Acknowledge</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="compressInfoModal">
+        <div class="modal-content info-bubble-content" style="max-height: 80vh; overflow-y: auto;">
+            <div class="section-title" style="margin-bottom:12px;">Encoder Specifications</div>
+            <div class="clip-info-list" style="font-size: 11.5px; color: var(--text-medium); line-height: 1.6; display:flex; flex-direction:column; gap:6px;">
+                <div>🖼️ <b>JPG / PNG / WEBP:</b> Client-side canvas buffer optimization</div>
+                <div>✒️ <b>SVG:</b> XML tree pruning, whitespace and metadata stripping</div>
+                <div>🎮 <b>TGA / PCX:</b> Binary bitmap parser with lossless compression</div>
+                <div>🧮 <b>PPM / Netpbm:</b> Raw matrix parser for technical images</div>
+            </div>
+            <button class="btn btn-primary btn-block" id="compressInfoOkBtn" style="margin-top:14px;">Acknowledge</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="allNotesModal">
+        <div class="modal-content" style="max-width:340px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span class="section-title" style="margin:0;">Notes Registry Index</span>
+                <button id="allNotesCloseBtn" class="settings-close-btn" aria-label="Close">✕</button>
+            </div>
+            <div id="allNotesList" style="max-height: 240px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+    </div>
+
+    <!-- Minimal Physical Toast -->
+    <div class="toast" id="toast">COPIED</div>
+
+    <!-- Tag Modal -->
+    <div id="tagModalOverlay" class="modal-overlay">
+        <div class="modal-content" style="max-width:260px;">
+            <div class="section-title">New Taxonomy Tag</div>
+            <input id="tagModalInput" type="text" placeholder="Tag label..." style="margin-bottom:10px;">
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-dim); margin-bottom:6px;">CHROMATIC CODE</div>
+            <div id="tagColorPicker" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                <div class="tag-color-opt" data-color="purple" style="width:18px;height:18px;border-radius:50%;background:#a855f7;cursor:pointer;"></div>
+                <div class="tag-color-opt" data-color="blue" style="width:18px;height:18px;border-radius:50%;background:#3b82f6;cursor:pointer;"></div>
+                <div class="tag-color-opt" data-color="green" style="width:18px;height:18px;border-radius:50%;background:#22c55e;cursor:pointer;"></div>
+                <div class="tag-color-opt" data-color="orange" style="width:18px;height:18px;border-radius:50%;background:#f97316;cursor:pointer;"></div>
+                <div class="tag-color-opt" data-color="red" style="width:18px;height:18px;border-radius:50%;background:#ef4444;cursor:pointer;"></div>
+                <div class="tag-color-opt" data-color="cyan" style="width:18px;height:18px;border-radius:50%;background:#06b6d4;cursor:pointer;"></div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button id="tagModalCancel" class="btn btn-secondary btn-sm" style="flex:1;">Cancel</button>
+                <button id="tagModalOk" class="btn btn-primary btn-sm" style="flex:1;">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="lib/jsQR.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

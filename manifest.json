@@ -1,0 +1,64 @@
+{
+  "manifest_version": 3,
+  "name": "WorkBox – All-in-One Toolbox",
+  "version": "1.0.3",
+  "description": "Your everyday browser toolbox — clipboard manager, password generator, QR scanner and more, 100% local.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "clipboardWrite",
+    "clipboardRead",
+    "alarms",
+    "offscreen",
+    "notifications",
+    "contextMenus",
+    "scripting",
+    "search"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "*://*.youtube.com/*",
+    "https://open.er-api.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+W",
+        "mac": "Alt+W"
+      },
+      "description": "Open WorkBox"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js",
+        "expander.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://open.er-api.com data:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+  }
+}
