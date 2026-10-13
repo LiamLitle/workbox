@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkBox – Privacy Policy</title>
+<link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<main>
+  <header class="brand">WorkBox</header>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Last updated October 10, 2026</p>
+
+  <p class="lead"><strong>In short.</strong> WorkBox works on your computer and has no server of its own. It does not collect, sell or share your personal data, and nothing you save is sent to the developer. There is no account, no analytics, no advertising and no tracking. The few network requests it makes are listed in section 3.</p>
+
+  <h2>1. What stays on your device</h2>
+  <p>Everything you create or save with WorkBox is stored locally in your browser, using the extension's own storage (<code>chrome.storage</code>). This includes:</p>
+  <ul>
+    <li>clipboard history (text, links, images) and pinned items;</li>
+    <li>notes, tasks, timers, stopwatch laps, Pomodoro sequences, text shortcuts and the calculator history;</li>
+    <li>the last passwords you generated (up to 20);</li>
+    <li>saved colors, generated QR codes and their history, and the last QR code you scanned;</li>
+    <li>audio files you add to the music player, and images you compressed;</li>
+    <li>settings, the Protection statistics, and the counters that decide which tool suggestions to show;</li>
+    <li>the encryption key of your clipboard texts, protected by your password and by a recovery code: the password and the code themselves are never stored, and that key is not written to disk (see below).</li>
+  </ul>
+  <p>None of this is sent to the developer or to any server. If you uninstall the extension, this data is removed with it. The export feature only creates a file or link on your own device when you ask for it. Backups leave out clipboard items marked Private or Password; notes and tasks are exported as they are. A backup file or link is <strong>not encrypted</strong>, even if you have set a password: it contains your texts in plain text, so keep it somewhere safe.</p>
+
+  <p><strong>Who is in control.</strong> The developer never receives, sees or has access to this data, and cannot read, recover or delete it for you. It stays under your control, in your own browser profile. This is also why the developer does not collect or process your personal data in the usual sense.</p>
+
+  <p><strong>How the clipboard history is built.</strong> While your browser is running, WorkBox reads the system clipboard in the background every few seconds, and also records what you copy or cut on web pages. This means text and images copied in other applications are added to the history too, as long as the browser is open. Items detected as passwords, API keys, email addresses or phone numbers are marked Private and hidden on screen. Deleting an item removes it from the list for good. You can switch this off at any time (Settings &gt; Privacy &gt; "Save what I copy"), and list websites where nothing you copy is ever saved ("Private sites").</p>
+
+  <p><strong>Encrypting the clipboard.</strong> When you set a password, your texts are encrypted before they are written: the text of each item, the preview kept for very long ones, and the compressed body of those long texts. WorkBox uses a single random key for all of it; your password only protects that key, which is why changing your password never rewrites your texts.</p>
+  <p>That key is held in memory for the duration of the browser session and is never written to disk. Three consequences are worth knowing. One unlock covers a whole browser session, not every time the popup opens. While the vault is locked — between starting the browser and that first unlock — texts you copy wait in memory only; they are never stored in the clear, and they are lost if you close the browser before unlocking. The recovery code starts with WP and is shown once; it is never saved in your clipboard history, even if you copy it. And if you lose both your password and the recovery code shown when you set it, the encrypted texts cannot be read again, by anyone, including you.</p>
+  <p>This covers text only. Images, notes, tasks, the last passwords you generated, and the details attached to each item (its type, its date, its size) are still stored as plain data in your browser profile. The password lock on its own does not change that.</p>
+
+  <h2>2. What WorkBox never does</h2>
+  <ul>
+    <li>It does not sell, rent or share your data with anyone, and has no advertising.</li>
+    <li>It does not include analytics, telemetry, crash reporting or fingerprinting.</li>
+    <li>It does not send your clipboard, browsing history, page content, QR codes, notes or passwords to any server.</li>
+  </ul>
+
+  <h2>3. The only network requests</h2>
+  <p>WorkBox contacts the internet only in the situations below. None of these requests goes to the developer.</p>
+  <ul>
+    <li><strong>Exchange rates (Converter).</strong> The extension downloads a public list of currency rates from <code>open.er-api.com</code> (a free service run by ExchangeRate-API, whose own terms and privacy policy apply to it) when it is installed or updated, when the browser starts, about every four hours while the browser is running, and when you press the refresh button. The source publishes one set of rates per day. No personal data or identifier is sent. As with any web request, that service can see your IP address.</li>
+    <li><strong>Live site check (Protection).</strong> When this option is on and a warning page is shown, WorkBox requests the home page of the flagged site to see whether the site is online. The request goes to that website only, without cookies and without a referrer, and the answer is only analyzed locally. It contacts that website from your connection, so the site can see your IP address. You can turn this off in the Protection panel.</li>
+    <li><strong>"Test an address" (Protection).</strong> When you type an address and press the test button, WorkBox requests the home page of that site in the same way, to tell you whether it is online. This happens every time you press the button, even if the live site check option is off.</li>
+    <li><strong>Trusted sites and bookmarks.</strong> The sites you mark as trusted are kept on your device. If you press "Trust all my bookmarks", Chrome asks you for the bookmarks permission; WorkBox reads the addresses of your bookmarks once, keeps only the site names in your trusted list, and gives the permission back straight away. Nothing is sent anywhere.</li>
+    <li><strong>Search-engine detection (AI-answer blocker).</strong> WorkBox never runs a search for you and never opens a tab for this. It only notices, on your device, when a page you open yourself is a Google or Brave Search results page, and looks at the addresses of your open tabs every ten minutes for the same purpose. The only thing kept is the name of that engine, stored locally to display it in the tool. Nothing is sent anywhere.</li>
+    <li><strong>Logo from a website (QR code generator).</strong> When you press the button that takes a website's logo for a QR code, WorkBox requests that website's home page and its icon files, and the same for its parent domain (up to a few seconds each). If nothing is found this way, a last attempt is made with your cookies for that site, and then with your browser's own icon cache. This happens only when you press the button. Nothing is sent to the developer.</li>
+    <li><strong>Images you ask for.</strong> When you use the right-click actions "Compress this image", "Save this image" or "Scan the QR code in this image", WorkBox downloads that image from the website that hosts it, as your browser would.</li>
+    <li><strong>Update check.</strong> At most twice a day, when you open the popup, WorkBox asks your browser whether a newer version of the extension is available (<code>chrome.runtime.requestUpdateCheck</code>). The request is made by the browser to its extension store, not to a WorkBox server, and contains none of your data.</li>
+  </ul>
+  <p>WorkBox only keeps dates locally (when you last exported a backup, when you last saw a reminder, when it last checked for an update) to decide when to remind you.</p>
+  <p>Links you open yourself (from the clipboard list, a scanned QR code, a note) are ordinary browser navigation: the browser loads the page as if you had typed the address, and those websites' own policies apply.</p>
+
+  <h2>4. Why WorkBox asks for permissions</h2>
+  <ul>
+    <li><code>storage</code>, <code>unlimitedStorage</code>: keep your data locally.</li>
+    <li><code>clipboardRead</code>: read the system clipboard in the background every few seconds to build your clipboard history. <code>clipboardWrite</code>: copy an item, a password, a color or a result when you click it.</li>
+    <li><code>&lt;all_urls&gt;</code> (access to websites): record what you copy or cut on a page, run text shortcuts in text fields, capture the visible page when you select a QR code on it (and, when you rest the pointer on an image, to check on your device whether it holds a QR code; that picture is never stored or sent), hide AI answers on search engines, analyze pages for the Protection feature, and make the live site check. Page content is analyzed in your browser and is not recorded or transmitted.</li>
+    <li><code>webNavigation</code>: read the address of the page a tab is loading, to warn you about dangerous or adult sites.</li>
+    <li><code>notifications</code>: tell you when a timer or Pomodoro step ends, when a right-click action is done, or when the clipboard history is almost full. <code>alarms</code>: wake the extension for timers, Pomodoro steps and the exchange-rate refresh. <code>offscreen</code>: a hidden page that plays your music and reads the clipboard. <code>contextMenus</code>: the right-click menu on selected text, links, images and pages (add to notes, clipboard or tasks, check a link, make or scan a QR code, compress or save an image). <code>favicon</code>: show a site's icon from your browser's own icon cache, without any request. <code>tabGroups</code>: create and name the two tab groups of Tab triage. <code>scripting</code>: place the QR selection tool on the current page when you start a scan.</li>
+  </ul>
+
+  <h2>5. Your choices and control</h2>
+  <ul>
+    <li><strong>Access:</strong> everything WorkBox keeps is visible in the popup. Settings &gt; Backup exports a copy of your notes, tasks, texts and settings to a file or a link on your own device.</li>
+    <li><strong>Deletion:</strong> delete any item one by one, use "Delete all" in the clipboard, "Clear completed" in tasks, or the other clear buttons in each tool. Uninstalling the extension removes all of its data from your browser.</li>
+    <li><strong>Stop saving:</strong> turn off "Save what I copy", add "Private sites", or turn off the Protection live check, at any time.</li>
+    <li><strong>How long data is kept:</strong> until you delete it, or until the extension makes room automatically when the limits are reached (5,000 texts, 1,000 images): older items are compressed in steps, and when storage is full new items are not saved. Nothing is kept anywhere else.</li>
+    <li><strong>Your rights:</strong> because the developer holds no copy of your data, the rights that privacy laws give you (access, correction, deletion, portability, objection) are exercised directly in the extension, as described above.</li>
+  </ul>
+
+  <h2>6. Changes</h2>
+  <p>If this policy changes, the new version ships with a new version of the extension, the date above is updated, and notable changes are listed in the changelog.</p>
+
+  <h2>7. Contact</h2>
+  <p>For any question about this policy, use the support contact shown on WorkBox's page in the extension store.</p>
+
+  <footer>
+    <nav><a href="terms.html">Terms of Use</a><a href="privacy.html">Privacy Policy</a></nav>
+    <p class="copy">© 2026 WorkBox. All rights reserved.</p>
+  </footer>
+</main>
+<script src="copy-md.js"></script>
+</body>
+</html>

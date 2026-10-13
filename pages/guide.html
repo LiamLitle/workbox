@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkBox – Guide</title>
+<link rel="stylesheet" href="legal.css">
+<style>
+  :root { --font-label: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+          --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+  body { font-family: var(--font-body); }
+  .brand, h1, h2, .meta, kbd, footer { font-family: var(--font-label); }
+  h1 { font-size: 26px; letter-spacing: 0.01em; }
+  .brand { letter-spacing: 0.18em; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; padding: 0; list-style: none; }
+  .toc li { margin: 0; }
+  .toc a { display: inline-block; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--body); }
+  .toc a:hover { color: var(--accent); border-color: rgba(167,139,250,.45); text-decoration: none; }
+  .tool { margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+  .tool h2 { font-size: 17px; margin: 0 0 4px; }
+  .where { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  kbd { font-size: 12.5px; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+  .keys { width: 100%; border-collapse: collapse; margin: 6px 0 4px; }
+  .keys td { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .keys td:first-child { width: 90px; }
+  .note { color: var(--muted); font-size: 13.5px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="brand">WorkBox</header>
+  <h1>Guide</h1>
+  <p class="meta">How each tool works, in a few lines. Everything stays on your device.</p>
+
+  <p class="lead">Open WorkBox with its icon in the toolbar, or with <kbd>Alt</kbd> + <kbd>W</kbd>. The bar at the bottom of the popup holds <b>Clipboard</b>, <b>Calculator</b>, <b>Notes</b> and <b>Music</b>. The <b>···</b> button opens all the other tools. For a guided tour of any tool, open Settings (the gear) &rarr; <b>Tuto</b> &rarr; Learn a tool.</p>
+
+  <ul class="toc">
+    <li><a href="#shortcuts">Shortcuts</a></li>
+    <li><a href="#clipboard">Clipboard</a></li>
+    <li><a href="#calculator">Calculator</a></li>
+    <li><a href="#notes">Notes &amp; to-do</a></li>
+    <li><a href="#password">Password</a></li>
+    <li><a href="#qr">QR codes</a></li>
+    <li><a href="#color">Color picker</a></li>
+    <li><a href="#convert">Converter</a></li>
+    <li><a href="#timer">Timer</a></li>
+    <li><a href="#text">Text shortcuts</a></li>
+    <li><a href="#compress">Compressor</a></li>
+    <li><a href="#music">Music</a></li>
+    <li><a href="#triage">Tab triage</a></li>
+    <li><a href="#aisearch">AI-free search</a></li>
+    <li><a href="#protection">Protection</a></li>
+    <li><a href="#backup">Backup &amp; lock</a></li>
+  </ul>
+
+  <section class="tool" id="shortcuts">
+    <h2>Keyboard shortcuts</h2>
+    <table class="keys">
+      <tr><td><kbd>Alt</kbd> + <kbd>W</kbd></td><td>Open WorkBox</td></tr>
+      <tr><td><kbd>Alt</kbd> + <kbd>C</kbd></td><td>Open the clipboard history, from any page</td></tr>
+      <tr><td><kbd>Alt</kbd> + <kbd>S</kbd></td><td>Scan a QR code: select an area of the page</td></tr>
+    </table>
+    <p class="note">You can change them at <code>chrome://extensions/shortcuts</code>.</p>
+  </section>
+
+  <section class="tool" id="clipboard">
+    <h2>📋 Clipboard</h2>
+    <p class="where">Bottom bar &rarr; Clipboard</p>
+    <ul>
+      <li>Everything you copy is saved: texts, links and images. Click an item to copy it again.</li>
+      <li>Search, or filter by type (links, emails, colors, code, prices…) and by the site you copied from.</li>
+      <li>Pin what matters so it stays at the top and is never cleaned up.</li>
+      <li>Sensitive items, such as passwords, are hidden on screen.</li>
+      <li>Settings &rarr; Privacy: switch saving off at any time, list private sites where nothing is kept, or protect your texts with a password (they are then encrypted, and a recovery code is shown once).</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="calculator">
+    <h2>🧮 Calculator</h2>
+    <p class="where">Bottom bar &rarr; Calculator</p>
+    <ul>
+      <li>Type a calculation such as <code>(150 * 20) + 12.5</code> and press <kbd>Enter</kbd>, or use the keys on screen. <kbd>Esc</kbd> clears it.</li>
+      <li>Your calculations are kept in a history below. You can clear it at any time.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="notes">
+    <h2>📝 Notes &amp; to-do</h2>
+    <p class="where">Bottom bar &rarr; Notes</p>
+    <ul>
+      <li>Write notes with Markdown and switch to the preview to see the result.</li>
+      <li>The to-do list holds simple tasks with priorities. Tick them off as you go.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="password">
+    <h2>🔐 Password generator</h2>
+    <p class="where">··· &rarr; Password</p>
+    <ul>
+      <li>Pick the length and the characters, then generate. The password is made on your device, and your choices are remembered.</li>
+      <li>Copy it with one click, or turn on automatic copy.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="qr">
+    <h2>📷 QR codes</h2>
+    <p class="where">··· &rarr; QR Code, or <kbd>Alt</kbd> + <kbd>S</kbd></p>
+    <ul>
+      <li><b>Scan:</b> select an area of a page, or pick an image. WorkBox shows where the code leads before you open it.</li>
+      <li><b>Create:</b> type a link or text, then choose colors, shapes and a logo. Test that the code can be read before you use it.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="color">
+    <h2>🎨 Color picker</h2>
+    <p class="where">··· &rarr; Color</p>
+    <ul>
+      <li>Pick any color on your screen and copy it as HEX, RGB or HSL.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="convert">
+    <h2>🔄 Converter</h2>
+    <p class="where">··· &rarr; Convert</p>
+    <ul>
+      <li>Convert units and currencies. Exchange rates are updated once a day.</li>
+      <li>If an update fails, approximate built-in rates are used and a warning says so.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="timer">
+    <h2>⏱️ Timer, stopwatch &amp; Pomodoro</h2>
+    <p class="where">··· &rarr; Timer</p>
+    <ul>
+      <li>They keep running when you close the popup, and you get a notification when time is up.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="text">
+    <h2>⚡ Text shortcuts</h2>
+    <p class="where">··· &rarr; Shortcuts</p>
+    <ul>
+      <li>Create a short code such as <code>!mail</code> and the text it stands for.</li>
+      <li>Type the code in any text field on a website: it expands into your full text.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="compress">
+    <h2>🗜️ Image compressor</h2>
+    <p class="where">··· &rarr; Compressor</p>
+    <ul>
+      <li>Add images (JPG, PNG, WEBP, GIF, SVG…) and shrink them. Nothing is uploaded: it all happens in your browser.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="music">
+    <h2>🎵 Music player</h2>
+    <p class="where">Bottom bar &rarr; Music</p>
+    <ul>
+      <li>Add your own audio files and play them while you work. Choose repeat: off, whole playlist, or this track only.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="triage">
+    <h2>🗂️ Tab triage</h2>
+    <p class="where">··· &rarr; Tab triage &middot; off by default</p>
+    <ul>
+      <li>Tabs you open in the background (mouse wheel click or <kbd>Ctrl</kbd> + click) wait in a <b>🔴 Not opened yet</b> group.</li>
+      <li>Once you visit one, it moves to <b>🟢 Already opened</b>.</li>
+      <li>You can rename the groups, choose their colors and add sites that should be left alone.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="aisearch">
+    <h2>🔎 AI-free search</h2>
+    <p class="where">··· &rarr; AI-free search</p>
+    <ul>
+      <li>Hides the AI answers on Google and Brave Search, so you keep the classic list of links.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="protection">
+    <h2>🛡️ Protection</h2>
+    <p class="where">··· &rarr; Protection</p>
+    <ul>
+      <li>Shows a warning before you land on a suspicious, phishing-like or adult website.</li>
+      <li>It is an aid, not a guarantee: it can miss a dangerous site or flag a harmless one.</li>
+    </ul>
+  </section>
+
+  <section class="tool" id="backup">
+    <h2>💾 Backup &amp; lock</h2>
+    <p class="where">Settings (the gear at the top of the popup)</p>
+    <ul>
+      <li><b>Backup:</b> save your data to a file or a link. To move to another computer, restore it there and choose to keep or replace what is already in WorkBox.</li>
+      <li><b>Lock:</b> protect the popup with a password. Keep your recovery code somewhere safe: without it, nobody can read your encrypted texts.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <nav><a href="changelogs.html">Changelog</a><a href="terms.html">Terms of Use</a><a href="privacy.html">Privacy Policy</a></nav>
+    <p class="copy">© 2026 WorkBox. All rights reserved.</p>
+  </footer>
+</main>
+</body>
+</html>

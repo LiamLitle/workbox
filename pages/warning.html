@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WorkBox protection</title>
+  <link rel="stylesheet" href="warning.css">
+</head>
+<body>
+  <main class="wrap" id="wrap" data-type="danger">
+    <div class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l8 3v6c0 4.5-3.2 8.3-8 9-4.8-.7-8-4.5-8-9V6l8-3z"/>
+        <path d="M12 8v5M12 16.5v.01"/>
+      </svg>
+    </div>
+    <h1 id="title"></h1>
+    <p id="lead"></p>
+    <div class="box">
+      <div class="row"><span class="k">Site</span><span class="v" id="host"></span></div>
+      <div class="row"><span class="k">Why</span><span class="v" id="reason"></span></div>
+      <div class="row" id="probeRow" hidden><span class="k">Live</span><span class="v" id="probe">Checking if the site is online…</span></div>
+    </div>
+    <p class="count" id="count" hidden></p>
+    <div class="actions">
+      <button class="btn primary" id="backBtn">Go back to safety</button>
+      <button class="btn ghost" id="cancelBtn" hidden>Stay on this page</button>
+    </div>
+    <details class="more" id="more">
+      <summary id="moreSummary"></summary>
+      <p class="small" id="moreText"></p>
+      <p class="small url" id="fullUrl"></p>
+      <button class="btn danger" id="continueBtn"></button>
+      <button class="btn ghost trust" id="trustBtn">Always trust this site</button>
+      <p class="small" id="trustText">It will never be flagged again. You can remove it later in WorkBox, under Protection, Trusted sites.</p>
+    </details>
+    <p class="foot">WorkBox web protection · the analysis happens on your device</p>
+  </main>
+  <script src="warning.js"></script>
+</body>
+</html>

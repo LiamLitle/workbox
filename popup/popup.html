@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=380">
+    <title>WorkBox</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="tour.css">
+    <meta name="description"
+        content="WorkBox — all-in-one toolbox: clipboard manager, calculator, notes, color picker, password generator, converter.">
+    <meta name="theme-color" content="#7c3aed">
+</head>
+
+<body class="app-loading">
+
+    <!-- Header -->
+    <div class="header">
+        <span class="header-logo">⚡ WorkBox</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="header-badge" id="headerBadge">v1.1.1 Lite</span>
+            <button class="settings-gear-btn" id="settingsOpenBtn" title="Settings"
+                aria-label="Open settings">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== APP LOCK SCREEN ========== -->
+    <div class="settings-modal-overlay lock-screen" id="appLockOverlay" style="z-index:10000;">
+        <div class="lock-box">
+            <span class="lock-mark" aria-hidden="true"></span>
+            <input type="password" id="appLockInput" class="lock-input" placeholder="Password" aria-label="Password" autocomplete="current-password">
+            <div id="appLockError" class="lock-error" role="alert">Incorrect password</div>
+
+            <button id="appLockForgotBtn" class="lock-link" type="button">Forgot password?</button>
+            <div id="appLockForgotPanel" class="lock-forgot">
+                <p>Enter the recovery code shown when you set your password. It starts with WP.</p>
+                <input type="text" id="appLockRecoveryInput" class="lock-input lock-code" placeholder="WP-XXXXXX-XXXXXX-XXXXXX-XXXXXX" aria-label="Recovery code" autocomplete="off" spellcheck="false">
+                <button class="lock-btn" id="appLockRecoveryBtn" type="button">Unlock</button>
+                <div id="appLockRecoveryError" class="lock-error lock-error-on"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RECOVERY CODE MODAL ========== -->
+    <div class="settings-modal-overlay" id="recoveryCodeOverlay" style="z-index:10001;">
+        <div class="settings-modal rc-modal" role="dialog" aria-labelledby="rcTitle">
+            <div class="rc-kicker">Password enabled</div>
+            <h3 class="rc-title" id="rcTitle">Your recovery code</h3>
+            <p class="rc-text">If you forget your password, this code is the only way back in. Write it down and keep it somewhere safe.</p>
+
+            <div class="rc-code" id="recoveryCodeDisplay" aria-label="Recovery code">----</div>
+
+            <p class="rc-once">Shown once. WorkBox never keeps a copy of it and will not save it in your history.</p>
+
+            <div class="rc-actions">
+                <button id="recoveryCodeCopyBtn" class="btn btn-secondary">Copy</button>
+                <button id="recoveryCodeCloseBtn" class="btn btn-primary">I've saved it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== WELCOME KEY MODAL (first open) ========== -->
+    <div class="settings-modal-overlay" id="passwordConfirmModalOverlay" style="z-index:10002;">
+        <div class="settings-modal" style="max-width:300px; text-align:center; padding:24px; background:#1a1530; border:1px solid rgba(139,92,246,0.35); border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <div style="font-size:36px; margin-bottom:12px;">🛡️</div>
+            <h3 id="passwordConfirmTitle" style="margin:0 0 8px; font-size:16px; font-weight:700; color:#fff;">Secure Action</h3>
+            <p id="passwordConfirmDesc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px; line-height:1.4; white-space: pre-line;">
+                Please confirm this action.
+            </p>
+            <div id="passwordConfirmInputWrapper" style="display:none; margin-bottom:16px;">
+                <input type="password" id="passwordConfirmInput" placeholder="Your password..." class="pw-select" style="width:100%; box-sizing:border-box; padding:10px; font-size:13px; border-radius:8px; text-align:center; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#fff; outline:none;">
+                <div id="passwordConfirmError" style="color:#ef4444; font-size:11px; margin-top:8px; min-height:16px; opacity:0; transition:0.2s;">Incorrect password</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button id="passwordConfirmCancelBtn" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.6); font-size:12px; cursor:pointer;">Cancel</button>
+                <button id="passwordConfirmOkBtn" class="btn btn-primary" style="flex:1; padding:10px; border-radius:8px; font-size:12px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+
+    <div class="settings-modal-overlay" id="settingsOverlay">
+        <div class="settings-modal">
+            <div class="st-head">
+                <h3>Settings</h3>
+                <button class="settings-close-btn" id="settingsCloseBtn" aria-label="Close">✕</button>
+            </div>
+
+            <div class="st-tabs" role="tablist" aria-label="Settings sections">
+                <button type="button" class="st-tab active" role="tab" aria-selected="true" data-pane="backup"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>Backup</span></button>
+                <button type="button" class="st-tab" role="tab" aria-selected="false" data-pane="privacy"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Privacy</span></button>
+                <button type="button" class="st-tab" role="tab" aria-selected="false" data-pane="storage"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>Storage</span></button>
+                <button type="button" class="st-tab" role="tab" aria-selected="false" data-pane="tuto"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg><span>Tuto</span></button>
+                <button type="button" class="st-tab" role="tab" aria-selected="false" data-pane="about"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span>About</span></button>
+            </div>
+            <div class="st-pane active" data-pane="backup">
+            <section class="st-section">
+                <div class="st-title">Create a backup</div>
+                <p class="st-note">One link holds your notes, clipboard history, tasks and pinned colors. Everything stays local. Private and Password items are never included.</p>
+                <div class="st-label">Your backup link</div>
+                <input type="text" id="linkField" class="st-input st-link" placeholder="Your link will appear here" spellcheck="false" autocomplete="off" aria-label="Your backup link" readonly>
+                <button class="st-btn st-btn-main st-btn-block" style="margin-top:0;" id="copySecretKeyBtn">Create link</button>
+                <div class="st-status" id="linkStatus">Not created yet.</div>
+                <p class="st-note" style="margin:8px 0 6px;">Keep the link somewhere safe, or send it to yourself. It updates itself as you work. The backup is not encrypted: anyone who has it can read your texts.</p>
+                <button class="wb-link-btn" id="exportJsonFileBtn">Or save it as a .json file</button>
+            </section>
+
+            <section class="st-section">
+                <div class="st-title">Restore a backup</div>
+                <p class="st-note">Bring a backup link from another WorkBox into this one.</p>
+                <div class="st-label">Backup link to import</div>
+                <div class="st-row">
+                    <input type="text" id="importLinkField" class="st-input st-link" placeholder="workbox-data://…" spellcheck="false" autocomplete="off" aria-label="Backup link to import">
+                    <button class="st-btn" id="pasteLinkBtn" title="Paste the link you copied">Paste</button>
+                </div>
+                <div class="st-label">What to do with what is already here</div>
+                <div class="st-mode" id="importMode" role="radiogroup" aria-label="What to do with what is already here">
+                    <button type="button" class="st-btn" data-mode="keep" role="radio" aria-checked="true" title="The backup is added to what you already have">Keep it</button>
+                    <button type="button" class="st-btn" data-mode="replace" role="radio" aria-checked="false" title="Your current notes, clipboard, tasks and pinned colors are deleted first">Replace it</button>
+                </div>
+                <button class="st-btn st-btn-main st-btn-block" style="margin-top:0;" id="importLinkBtn" disabled>Import link</button>
+                <button class="wb-link-btn" id="importJsonFileBtn" style="margin-top:10px;">Or import a .json file</button>
+                <input type="file" id="importJsonFileInput" accept="application/json,.json,.gz,application/gzip" style="display:none;">
+            </section>
+
+            </div>
+            <div class="st-pane" data-pane="privacy">
+            <section class="st-section">
+                <div class="st-title">What WorkBox does</div>
+                <p class="st-note">WorkBox reads your clipboard in the background, about every 2.5 seconds, so that a text copied anywhere — not only in the browser — lands in your history. Everything stays on this device, nothing is sent to a server, and you can exclude sites or encrypt the texts with a password. No account, no analytics, no advertising.</p>
+                <div class="st-switchrow">
+                    <div class="st-switchtext"><b>Save what I copy</b><span>Off means WorkBox stops reading the clipboard altogether. The Paste button still works, because that is you asking for it.</span></div>
+                    <label class="switch"><input type="checkbox" id="clipWatchToggle" checked><span class="switch-slider"></span></label>
+                </div>
+            </section>
+            <section class="st-section">
+                <div class="st-title">Clipboard encryption</div>
+                <div id="appLockStatusBanner" style="display:none;"></div>
+                <p class="st-note">Your saved texts are encrypted with a key that only your password can open. That key is never written to disk: after a browser restart, one unlock covers the whole session.</p>
+                <input type="password" id="appLockSettingsInput" class="st-input" placeholder="New password (min. 8 characters)" autocomplete="new-password">
+                <button class="st-btn st-btn-main st-btn-block" id="appLockSaveBtn">Set the password</button>
+                <button class="st-btn st-btn-block st-btn-danger" id="appLockRemoveBtn" style="display:none;">Remove encryption</button>
+            </section>
+            <section class="st-section">
+                <div class="st-title">Private sites</div>
+                <p class="st-note">WorkBox saves nothing you copy on these sites. Handy for banks, webmail or password managers.</p>
+                <div class="st-row">
+                    <input type="text" id="privSiteInput" class="st-input" placeholder="example.com" spellcheck="false" autocomplete="off" aria-label="Site to keep private">
+                    <button class="st-btn" id="privSiteAddBtn">Add</button>
+                </div>
+                <button class="wb-link-btn" id="privSiteThisBtn" style="margin-top:8px;">Add the site I am on</button>
+                <div class="priv-list" id="privSiteList"></div>
+                <div class="st-status" id="privSiteStatus"></div>
+            </section>
+            </div>
+            <div class="st-pane" data-pane="storage">
+            <section class="st-section">
+                <div class="st-title">Storage</div>
+                <p class="st-note">How much room your clipboard history takes.</p>
+                <div class="st-mini" id="stMini">
+                    <div class="st-mini-row"><span>Texts</span><div class="st-mini-bar"><i id="stMiniT"></i></div><b id="stMiniTp">0.0%</b></div>
+                    <div class="st-mini-row"><span>Images</span><div class="st-mini-bar"><i id="stMiniI"></i></div><b id="stMiniIp">0.0%</b></div>
+                </div>
+
+                <div class="st-persist" id="stPersist" hidden></div>
+                <button class="st-btn st-btn-block" style="margin-top:0;" id="openQuotaBtn">See my storage</button>
+            </section>
+            </div>
+            <div class="st-pane" data-pane="tuto">
+            <section class="st-section">
+                <div class="st-title">Tutorials</div>
+                <p class="st-note">A one-minute tour shows you where everything is, and the written guide explains each tool.</p>
+                <button class="st-btn st-btn-block" style="margin-top:0;" id="startTourBtn">Take the interactive tour</button>
+                <button class="st-btn st-btn-block" id="openGuideBtn">Open the written guide</button>
+                <div class="st-title" style="margin-top:18px;">Learn a tool</div>
+                <p class="st-note">A short tour of one tool at a time.</p>
+                <div class="tour-hub" id="tourHub"></div>
+            </section>
+            </div>
+            <div class="st-pane" data-pane="about">
+            <section class="st-section">
+                <div class="st-title">About WorkBox</div>
+                <p class="st-note" id="buildInfo" style="margin-top:10px;">Checking version…</p>
+            </section>
+            <div class="st-legal">
+                <a href="../pages/guide.html" target="_blank" rel="noopener">Guide</a>
+                <span aria-hidden="true">·</span>
+                <a href="../pages/changelogs.html" target="_blank" rel="noopener">Changelog</a>
+                <span aria-hidden="true">·</span>
+                <a href="../pages/terms.html" target="_blank" rel="noopener">Terms of Use</a>
+                <span aria-hidden="true">·</span>
+                <a href="../pages/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+            </div>
+            <div class="st-copy">© 2026 WorkBox. All rights reserved.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Storage: how much room the history takes -->
+    <div class="settings-modal-overlay" id="quotaOverlay" style="z-index:10001;">
+        <div class="settings-modal quota-modal">
+            <div class="st-head">
+                <h3>Storage</h3>
+                <button class="settings-close-btn" id="quotaCloseBtn" aria-label="Close">✕</button>
+            </div>
+            <div class="quota-grid" id="quotaGrid"></div>
+            <p class="st-note quota-note">Round points are texts, diamonds are images. The globe shows whichever is fullest, counting items or the room they take. Tap a column to see only its points. Pinned items take room too, but are not counted in the number of items.</p>
+        </div>
+    </div>
+
+    <!-- Tab Navigation Removed (Now Floating Action Button) -->
+
+    <!-- Panels Container -->
+    <div class="panels-container">
+        <div class="tip-banner" id="tipBanner" hidden role="note">
+            <div class="tip-icon" id="tipIcon" aria-hidden="true">✨</div>
+            <div class="tip-body">
+                <div class="tip-title"><span class="tip-tag">Suggestion</span> <span id="tipTitle"></span></div>
+                <div class="tip-text" id="tipText"></div>
+                <div class="tip-actions">
+                    <button class="tip-btn tip-btn-go" id="tipGo">Try it</button>
+                    <button class="tip-btn tip-btn-no" id="tipNo">Not interested</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 1. CLIPBOARD ========== -->
+        <div class="panel active" id="panel-clipboard">
+            <!-- Monitoring off reads as a state, not a warning: dashed, muted, a dead
+                 LED. No alarm colour, no banner, no button — Settings is the way back.
+                 The history below stays readable on purpose: turning monitoring off
+                 stops the capture, it does not throw away what is already saved. -->
+            <div class="clip-off" id="clipOffBanner" hidden role="status">
+                <div class="clip-off-head">
+                    <span class="clip-off-dot" aria-hidden="true"></span>
+                    <span class="clip-off-title">Clipboard disconnected</span>
+                </div>
+                <p class="clip-off-text">WorkBox is not reading what you copy, so nothing new is saved. Your history below is untouched. To reconnect: <b>Settings → Privacy → “Save what I copy”</b>.</p>
+            </div>
+            <div class="clipboard-top-actions">
+                <div class="clip-search-wrapper"
+                    style="position: relative; flex: 1; display: flex; align-items: center;">
+                    <span class="search-icon" aria-hidden="true"
+                        style="position: absolute; left: 10px; width: 14px; height: 14px; background-color: var(--text-muted); -webkit-mask-image: url('../icons/svg/presse%20papier/loupe.svg'); mask-image: url('../icons/svg/presse%20papier/loupe.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;"></span>
+                    <input type="text" id="clipSearch" placeholder="Search..."
+                        aria-label="Search clipboard history" style="padding-left: 32px;">
+                </div>
+                <button class="btn btn-secondary btn-icon" id="clipInfoBtn" title="Supported categories"
+                    aria-label="Supported categories" style="padding:0;">
+                    <span style="font-size:16px;" aria-hidden="true">ℹ️</span>
+                </button>
+                <button class="btn btn-primary btn-icon" id="clipPasteBtn" title="Paste from clipboard"
+                    aria-label="Paste from clipboard">
+                    <span aria-hidden="true"
+                        style="display:inline-block; width:16px; height:16px; background-color:currentColor; -webkit-mask-image: url('../icons/svg/presse%20papier/copier.svg'); mask-image: url('../icons/svg/presse%20papier/copier.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;"></span>
+                </button>
+            </div>
+
+            <!-- Date Filter Row -->
+            <div style="display:flex; gap: 8px; margin: 0 10px 10px 10px; align-items:center;">
+                <select id="clipDateFilter" class="clip-date-select">
+                    <option value="all">📅 All dates</option>
+                    <option value="1h">⏱️ Last hour</option>
+                    <option value="today">🗓️ Today</option>
+                    <option value="yesterday">📆 Yesterday</option>
+                    <option value="week">📆 This week</option>
+                    <option value="month">🗓️ This month</option>
+                    <option value="custom">🔍 Custom (Since...)</option>
+                </select>
+                <input type="datetime-local" id="clipDateCustom" class="clip-date-input" style="display:none;">
+            </div>
+
+            <div class="clip-tabs" id="clipTabs">
+                <button class="clip-tab-btn active" data-cliptab="text">📝 Text <span id="clipCountText" class="clip-tab-count">0</span></button>
+                <button class="clip-tab-btn" data-cliptab="image">🖼️ Images <span id="clipCountImage" class="clip-tab-count">0</span></button>
+                <button class="clip-tab-btn" data-cliptab="pinned">📌 Pinned <span id="clipCountPinned" class="clip-tab-count">0</span></button>
+            </div>
+
+            <div class="clipboard-categories" id="clipCategories"></div>
+
+            <div id="clipTextActions" style="display:flex; margin: 0 10px 10px 10px;">
+                <button class="btn btn-secondary" id="clipClearBtn" title="Delete all text history" aria-label="Delete all text history" style="flex:1; font-size:10px; padding:6px;"><span class="trash-svg-icon" style="width:11px;height:11px;"></span>Delete all text</button>
+                <button class="btn btn-secondary" id="clipForeignBtn" title="Bring in the history exported by another clipboard extension" style="flex:1; font-size:10px; padding:6px; margin-left:6px;">Import from another extension</button>
+            </div>
+
+            <div class="clip-list" id="clipList">
+                <div class="clip-empty">No items copied</div>
+            </div>
+
+            <div id="clipImageContainer" style="display:none; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary" id="exportImagesZipBtn" style="flex:1; font-size:10px; padding:6px; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><span style="display:inline-block; width:14px; height:14px; background-color:currentColor; -webkit-mask-image: url('../icons/svg/zip-file.svg'); mask-image: url('../icons/svg/zip-file.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;"></span>Export all as ZIP</button>
+                    <button class="btn btn-secondary" id="clearImagesHistoryBtn" style="flex:1; font-size:10px; padding:6px;"><span class="trash-svg-icon" style="width:11px;height:11px;"></span>Delete all images</button>
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); text-align:center; display:flex; align-items:center; justify-content:center; gap:5px;"><span style="display:inline-block; width:12px; height:12px; background-color:currentColor; -webkit-mask-image: url('../icons/svg/menu/compress.svg'); mask-image: url('../icons/svg/menu/compress.svg'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;"></span><span>Your images are automatically compressed on save to save space</span></div>
+                <div class="clip-image-list" id="clipImageList">
+                    <div class="clip-empty">No images copied</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 2. CALCULATOR ========== -->
+        <div class="panel" id="panel-calculator">
+            <!-- Display -->
+            <div class="calc-display">
+                <div class="calc-expression" id="calcExpr"></div>
+                <div class="calc-result" id="calcResult">0</div>
+                <div class="calc-kbd-hint">Type directly on your keyboard · <kbd>Enter</kbd> = · <kbd>Esc</kbd> clears</div>
+            </div>
+
+            <!-- Input -->
+            <div style="margin-top: 10px; margin-bottom: 14px;">
+                <input type="text" id="calcInputField" placeholder="E.g.: (150 * 20) + 12.5"
+                       style="width: 100%; padding: 14px; border-radius: var(--radius-sm); background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 18px; outline: none; font-family: monospace;">
+            </div>
+
+            <!-- Numeric keypad -->
+            <div class="calc-grid" id="calcGrid" style="margin-bottom: 14px;">
+                <button class="calc-btn fn" data-calc="clear">C</button>
+                <button class="calc-btn fn" data-calc="backspace">⌫</button>
+                <button class="calc-btn fn" data-calc="insert" data-val="%">%</button>
+                <button class="calc-btn op" data-calc="insert" data-val="÷">÷</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="7">7</button>
+                <button class="calc-btn num" data-calc="insert" data-val="8">8</button>
+                <button class="calc-btn num" data-calc="insert" data-val="9">9</button>
+                <button class="calc-btn op" data-calc="insert" data-val="×">×</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="4">4</button>
+                <button class="calc-btn num" data-calc="insert" data-val="5">5</button>
+                <button class="calc-btn num" data-calc="insert" data-val="6">6</button>
+                <button class="calc-btn op" data-calc="insert" data-val="−">−</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="1">1</button>
+                <button class="calc-btn num" data-calc="insert" data-val="2">2</button>
+                <button class="calc-btn num" data-calc="insert" data-val="3">3</button>
+                <button class="calc-btn op" data-calc="insert" data-val="+">+</button>
+
+                <button class="calc-btn num" data-calc="insert" data-val="0">0</button>
+                <button class="calc-btn num" data-calc="insert" data-val=".">.</button>
+                <button class="calc-btn eq" data-calc="submit">=</button>
+            </div>
+
+            <!-- History -->
+            <div class="calc-history card" style="margin-top:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <div class="section-title" style="margin:0;">History</div>
+                    <button class="calc-clear-hist-btn" id="calcClearHistBtn" title="Clear all" style="display:inline-flex;align-items:center;gap:5px;"><span class="trash-svg-icon" style="width:11px;height:11px;"></span>Clear</button>
+                </div>
+                <div class="calc-history-list" id="calcHistory"></div>
+            </div>
+        </div>
+
+
+                <!-- Row 1 (Top - Tools) -->
+
+        <!-- ========== 3. NOTES & TODO ========== -->
+
+        <div class="panel" id="panel-notes">
+
+            <!-- Switcher Notes / Todo -->
+            <div class="notes-todo-switcher">
+                <button class="nt-switch-btn active" id="btnViewNotes">📝 Notes</button>
+                <button class="nt-switch-btn" id="btnViewTodo">✅ To-do</button>
+            </div>
+
+            <!-- ================= NOTES VIEW ================= -->
+            <div id="notesView" class="nt-view active-view">
+                <!-- Search -->
+                <div class="note-search-row">
+                    <input type="text" id="noteSearch" placeholder="Search notes…" aria-label="Search notes">
+                </div>
+                <!-- Note Tabs -->
+                <div class="note-tabs" id="noteTabs">
+                    <button class="note-tab-add" id="noteAllBtn" title="Show all notes" aria-label="Show all notes">☰</button>
+                    <button class="note-tab-nav" id="noteTabPrev" title="Previous notes" aria-label="Scroll notes left" hidden>&#8249;</button>
+                    <div class="note-tabs-scroll" id="noteTabsScroll"></div>
+                    <button class="note-tab-nav" id="noteTabNext" title="More notes" aria-label="Scroll notes right" hidden>&#8250;</button>
+                    <button class="note-tab-add" id="noteAddBtn" title="New note">＋</button>
+                </div>
+                <!-- Compact & ergonomic toolbar -->
+                <div class="note-toolbar">
+                    <button class="note-tool-btn" id="noteBoldBtn" title="Bold (**text**)">𝐁</button>
+                    <button class="note-tool-btn" id="noteItalicBtn" title="Italic (*text*)">𝐼</button>
+                    <button class="note-tool-btn" id="noteCodeBtn" title="Code (`code`)" style="font-family:monospace;font-size:12px;">`</button>
+                    <div class="note-tool-sep"></div>
+                    <button class="note-tool-btn" id="noteH1Btn" title="Heading (# Heading)" style="font-size:11px;font-weight:800;">H1</button>
+                    <button class="note-tool-btn" id="noteH2Btn" title="Subheading (## Heading)" style="font-size:11px;font-weight:700;">H2</button>
+                    <button class="note-tool-btn" id="noteListBtn" title="List (- item)">•≡</button>
+                    <button class="note-tool-btn" id="noteQuoteBtn" title="Quote (> text)">&gt;</button>
+                    <div class="note-tool-sep"></div>
+                    <button class="note-tool-btn" id="noteMdToggle" title="Rendered Markdown preview" style="font-size:14px;">👁</button>
+                    <div style="flex:1"></div>
+                    <button class="note-tool-btn note-tool-danger" id="noteDeleteBtn" title="Delete this note"><span class="trash-svg-icon" style="width:14px;height:14px;"></span></button>
+                </div>
+
+                <!-- Raw text area (textarea) -->
+                <textarea class="note-textarea" id="noteArea"
+                    placeholder="# Heading&#10;**bold**, *italic*, `code`&#10;- list&#10;> quote&#10;&#10;Start writing..."></textarea>
+
+                <!-- Markdown preview (hidden by default) -->
+                <div class="note-preview" id="notePreviewArea" style="display:none;"></div>
+
+
+
+                <!-- Context Menu for Tabs -->
+                <div class="note-context-menu" id="noteContextMenu">
+                    <button id="noteCtxPin">📌 Pin</button>
+                    <button id="noteCtxRename" style="color: #60a5fa;">✏️ Rename</button>
+                    <div
+                        style="display:flex; gap:6px; padding:4px 8px; align-items:center; background:rgba(0,0,0,0.2); border-radius:8px;">
+                        <div class="note-color-opt" data-color=""
+                            style="width:16px;height:16px;border-radius:50%;background:transparent;border:2px dashed rgba(255,255,255,0.4);cursor:pointer;"
+                            title="None"></div>
+                        <div class="note-color-opt" data-color="rgba(139,92,246,0.3)"
+                            style="width:16px;height:16px;border-radius:50%;background:rgba(139,92,246,0.3);border:2px solid rgba(139,92,246,0.8);cursor:pointer;"
+                            title="Purple"></div>
+                        <div class="note-color-opt" data-color="rgba(56,189,248,0.3)"
+                            style="width:16px;height:16px;border-radius:50%;background:rgba(56,189,248,0.3);border:2px solid rgba(56,189,248,0.8);cursor:pointer;"
+                            title="Blue"></div>
+                        <div class="note-color-opt" data-color="rgba(34,197,94,0.3)"
+                            style="width:16px;height:16px;border-radius:50%;background:rgba(34,197,94,0.3);border:2px solid rgba(34,197,94,0.8);cursor:pointer;"
+                            title="Green"></div>
+                        <div class="note-color-opt" data-color="rgba(251,146,60,0.3)"
+                            style="width:16px;height:16px;border-radius:50%;background:rgba(251,146,60,0.3);border:2px solid rgba(251,146,60,0.8);cursor:pointer;"
+                            title="Orange"></div>
+                        <div class="note-color-opt" data-color="rgba(236,72,153,0.3)"
+                            style="width:16px;height:16px;border-radius:50%;background:rgba(236,72,153,0.3);border:2px solid rgba(236,72,153,0.8);cursor:pointer;"
+                            title="Pink"></div>
+                    </div>
+                    <hr class="ctx-sep">
+                    <button id="noteCtxExportTxt">📄 Export as .txt</button>
+                    <button id="noteCtxExportMd">📝 Export as .md</button>
+                    <hr class="ctx-sep">
+                    <button id="noteCtxDelete" style="color: #f87171; display:inline-flex; align-items:center; gap:6px;"><span class="trash-svg-icon" style="width:13px;height:13px;"></span>Delete</button>
+                </div>
+                <!-- Status bar -->
+                <div class="note-statusbar">
+                    <span class="note-status" id="noteStatus">Ready</span>
+                    <span class="note-stats" id="noteStats">0 words · 0 chars.</span>
+                </div>
+            </div> <!-- /#notesView -->
+
+            <!-- ================= TODO VIEW ================= -->
+            <div id="todoView" class="nt-view" style="display:none;">
+                <div class="todo-add-row">
+                    <input type="text" id="todoInput" class="todo-input" placeholder="Add a task" aria-label="Add a task" maxlength="300">
+                    <button class="todo-add-btn" id="todoAddBtn" title="Add" aria-label="Add">+</button>
+                </div>
+                <div class="todo-list-wrap" id="todoListWrap"></div>
+                <div class="todo-footer">
+                    <span id="todoStats">Nothing to do</span>
+                    <button class="todo-clear-done-btn" id="todoClearCompletedBtn">Clear completed</button>
+                </div>
+            </div> <!-- /#todoView -->
+
+        </div>
+
+        <!-- ========== 4. COLOR PICKER ========== -->
+        <div class="panel" id="panel-colorpicker">
+            <div class="color-preview-area">
+                <button class="color-main-btn" id="colorMainBtn" title="Choose a color" aria-label="Choose a color" aria-expanded="false">
+                    <span class="color-main-brush" aria-hidden="true">🖌️</span>
+                </button>
+                <input type="color" id="colorInput" value="#7c3aed" style="display:none;">
+                <div class="color-codes">
+                    <div class="color-code-row" data-copy="hex">
+                        <span class="color-code-label">HEX</span>
+                        <span class="color-code-value" id="colorHex">#7C3AED</span>
+                    </div>
+                    <div class="color-code-row" data-copy="rgb">
+                        <span class="color-code-label">RGB</span>
+                        <span class="color-code-value" id="colorRgb">rgb(124, 58, 237)</span>
+                    </div>
+                    <div class="color-code-row" data-copy="hsl">
+                        <span class="color-code-label">HSL</span>
+                        <span class="color-code-value" id="colorHsl">hsl(262, 83%, 58%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color wheel popover -->
+            <div class="color-wheel-pop" id="colorWheelPop" hidden>
+                <div class="color-wheel-wrap" id="colorWheelWrap">
+                    <canvas id="colorWheelCanvas" width="320" height="320"></canvas>
+                    <div class="color-wheel-marker" id="colorWheelMarker"></div>
+                </div>
+                <div class="color-wheel-side">
+                    <input type="range" id="colorWheelBright" min="0" max="100" value="100" class="color-wheel-bright" aria-label="Brightness">
+                    <button class="color-eyedrop-btn" id="colorEyedropperBtn" title="Pick color from screen">Picker</button>
+                </div>
+            </div>
+
+            <!-- Palettes -->
+            <div class="color-section">
+                <div class="section-title">Palettes</div>
+                <div class="color-palette-tabs" id="paletteTabs">
+                    <button class="cat-tag active" data-palette="material">Material</button>
+                    <button class="cat-tag" data-palette="pastel">Pastel</button>
+                    <button class="cat-tag" data-palette="neon">Neon</button>
+                    <button class="cat-tag" data-palette="dark">Dark</button>
+                </div>
+                <div class="color-palette-grid" id="paletteGrid"></div>
+            </div>
+
+            <!-- Pinned Colors -->
+            <div class="color-section" id="colorPinnedSection" style="display: none;">
+                <div class="section-title">Pinned</div>
+                <div class="color-history-grid" id="colorPinned"></div>
+            </div>
+
+            <!-- Recent Colors -->
+            <div class="color-section">
+                <div class="section-title">Recent</div>
+                <div class="color-history-grid" id="colorHistory"></div>
+            </div>
+        </div>
+
+        <!-- ========== 5. PASSWORD GENERATOR ========== -->
+        <div class="panel" id="panel-password">
+            <div class="pw-card">
+                <div class="pw-output-box" id="pwOutputsList">
+                    <div class="pw-output-row">
+                        <span class="pw-output pw-placeholder" id="pwOutput">Your password will appear here</span>
+                    </div>
+                </div>
+                <div class="pw-strength-bar">
+                    <div class="pw-strength-fill" id="pwStrengthFill"></div>
+                </div>
+                <span class="pw-strength-label" id="pwStrengthLabel" style="color: var(--text-muted);">—</span>
+            </div>
+
+            <div class="pw-option-group">
+                <div class="pw-slider-row">
+                    <label for="pwLength">Length</label>
+                    <input type="range" id="pwLength" min="3" max="128" value="16">
+                    <span class="pw-length-val" id="pwLengthVal">16</span>
+                </div>
+
+                <div class="pw-checks">
+                    <label class="pw-check-label" title="Uppercase letters"><input type="checkbox" id="pwUpper" checked><span>A–Z</span></label>
+                    <label class="pw-check-label" title="Lowercase letters"><input type="checkbox" id="pwLower" checked><span>a–z</span></label>
+                    <label class="pw-check-label" title="Digits"><input type="checkbox" id="pwDigits" checked><span>0–9</span></label>
+                    <label class="pw-check-label" title="Symbols"><input type="checkbox" id="pwSymbols"><span>#$&amp;</span></label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="pwGenerateBtn">Generate</button>
+
+            <details class="wb-fold pw-more">
+                <summary>More options</summary>
+                <div class="pw-more-body">
+                    <div class="pw-more-row">
+                        <label for="pwQuantity">How many</label>
+                        <select id="pwQuantity" class="pw-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <label class="pw-more-row pw-switch"><span>Avoid look-alike characters <em>0 O o 1 l I i</em></span><input type="checkbox" id="pwExcludeSimilar"></label>
+                    <label class="pw-more-row pw-switch"><span>Copy automatically</span><input type="checkbox" id="pwAutoCopy" checked></label>
+                </div>
+            </details>
+
+            <div class="pw-history">
+                <div class="pw-history-head">
+                    <div class="section-title">History</div>
+                    <button class="wb-link-btn" id="pwClearHistoryBtn">Clear</button>
+                </div>
+                <div class="pw-history-list" id="pwHistoryList">
+                    <div class="clip-empty">No history</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 6. UNIT CONVERTER ========== -->
+        <div class="panel" id="panel-converter">
+            <!-- Category Select -->
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom: 12px;">
+                <select id="convCategorySelect" class="conv-cat-select" style="margin-bottom:0; flex:1;"></select>
+
+            </div>
+
+            <!-- From / To, stacked — the unit dropdown IS the label, no need
+                 to repeat the unit name a second time underneath it. -->
+            <div class="conv-stack">
+                <div class="conv-line">
+                    <select id="convUnitA" class="conv-unit-select"></select>
+                    <div class="conv-input-wrap">
+                        <input type="text" inputmode="decimal" id="convInputA" placeholder="0" value="" autocomplete="off">
+                        <button type="button" class="conv-copy-btn" id="convCopyA" title="Copy" aria-label="Copy">📋</button>
+                    </div>
+                </div>
+
+                <button class="conv-swap-btn" id="convSwapBtn" title="Swap">⇅</button>
+
+                <div class="conv-line">
+                    <select id="convUnitB" class="conv-unit-select"></select>
+                    <div class="conv-input-wrap">
+                        <input type="text" inputmode="decimal" id="convInputB" placeholder="0" value="" autocomplete="off">
+                        <button type="button" class="conv-copy-btn" id="convCopyB" title="Copy" aria-label="Copy">📋</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-rate-info" id="convRateInfo"></div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:2px;">
+                <span class="conv-rate-freshness" id="convRateFreshness" style="font-size:10px; color:var(--text-muted);"></span>
+                <button type="button" id="convRefreshRatesBtn" title="Refresh rates" aria-label="Refresh rates"
+                    style="display:none; background:none; border:none; cursor:pointer; font-size:11px; color:var(--accent-light); padding:2px 4px;">🔄</button>
+            </div>
+
+            <div id="convRatesCredit" style="display:none; text-align:center; font-size:10px; margin-top:2px;"><a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" style="color:var(--text-muted);">Rates By Exchange Rate API</a></div>
+
+            <!-- Currency Country Table (Currency only) -->
+            <div class="conv-currency-table" id="convCurrencyTable" style="display:none;">
+                <input type="text" class="conv-country-search" id="convCountrySearch"
+                    placeholder="🔍 Search for a country or currency...">
+                <div class="conv-country-list" id="convCountryList"></div>
+            </div>
+        </div>
+
+        <!-- ========== 7. TIMER & STOPWATCH ========== -->
+        <div class="panel" id="panel-timer">
+
+            <!-- Tab switcher -->
+            <div class="tmr-tab-row">
+                <button class="tmr-tab active" id="tmrTabTimer">⏱ Timer</button>
+                <button class="tmr-tab" id="tmrTabStopwatch">🕐 Stopwatch</button>
+                <button class="tmr-tab" id="tmrTabPomodoro">🍅 Pomodoro</button>
+            </div>
+
+            <!-- ── TIMER VIEW ── -->
+            <div id="tmrView">
+                <div class="tmr-orb-wrap"><canvas class="wb-orb" id="tmrOrb"></canvas></div>
+                <!-- Big display -->
+                <div class="tmr-display" id="tmrDisplay">
+                    <span class="roll-group" id="tmrMainGroup"></span><span class="tmr-ms-sep">.</span><span class="tmr-ms" id="tmrMsGroup">00</span>
+                </div>
+
+                <!-- Input -->
+                <div class="tmr-input-row">
+                    <input type="number" class="tmr-field" id="tmrHours"   min="0" max="99" value="0" placeholder="hh">
+                    <span class="tmr-sep">:</span>
+                    <input type="number" class="tmr-field" id="tmrMinutes" min="0" max="59" value="5" placeholder="mm">
+                    <span class="tmr-sep">:</span>
+                    <input type="number" class="tmr-field" id="tmrSeconds" min="0" max="59" value="0" placeholder="ss">
+                </div>
+
+                <!-- Presets -->
+                <div class="tmr-presets">
+                    <button class="tmr-preset" data-h="0" data-m="1"  data-s="0">1m</button>
+                    <button class="tmr-preset" data-h="0" data-m="5"  data-s="0">5m</button>
+                    <button class="tmr-preset" data-h="0" data-m="10" data-s="0">10m</button>
+                    <button class="tmr-preset" data-h="0" data-m="25" data-s="0">25m</button>
+                    <button class="tmr-preset" data-h="0" data-m="30" data-s="0">30m</button>
+                    <button class="tmr-preset" data-h="1" data-m="0"  data-s="0">1h</button>
+                </div>
+
+                <!-- Controls -->
+                <div class="tmr-controls">
+                    <button class="tmr-btn tmr-btn-reset" id="tmrResetBtn" title="Reset">↺</button>
+                    <button class="tmr-btn tmr-btn-start" id="tmrStartBtn">▶ Start</button>
+                </div>
+            </div>
+
+            <!-- ── POMODORO VIEW ── -->
+            <div id="pomoView" style="display:none;">
+                <div class="tmr-orb-wrap pomo-orb"><canvas class="wb-orb" id="pomoOrb"></canvas></div>
+                <div class="pomo-phase" id="pomoPhase">Focus</div>
+                <div class="tmr-display pomo-time" id="pomoTime">25:00</div>
+                <div class="pomo-dots" id="pomoDots"></div>
+                <div class="tmr-controls sw-controls">
+                    <button class="tmr-btn tmr-btn-reset" id="pomoResetBtn" title="Reset" disabled>↺</button>
+                    <button class="tmr-btn tmr-btn-start" id="pomoStartBtn">▶ Start</button>
+                    <button class="tmr-btn tmr-btn-secondary" id="pomoSkipBtn" title="Skip to the next step">Skip</button>
+                </div>
+                <div class="pomo-next" id="pomoNext"></div>
+                <div class="pomo-editor" id="pomoEditor">
+                    <div class="pomo-steps" id="pomoSteps"></div>
+                    <div class="pomo-tools">
+                        <button class="pomo-tool" id="pomoAddBtn">+ Add step</button>
+                        <button class="pomo-tool" id="pomoClassicBtn" title="4 focus sessions, short breaks, then a long break">Classic 4×</button>
+                        <label class="pomo-loop" title="Start again from the first step when the last one ends"><input type="checkbox" id="pomoLoop" checked> Loop</label>
+                    </div>
+                    <div class="pomo-save">
+                        <input type="text" id="pomoPresetName" maxlength="16" placeholder="Name this sequence" aria-label="Name of the sequence to save">
+                        <button class="pomo-tool" id="pomoSaveBtn">Save</button>
+                    </div>
+                    <div class="pomo-presets" id="pomoPresets"></div>
+                </div>
+            </div>
+
+            <!-- ── STOPWATCH VIEW ── -->
+            <div id="swView" style="display:none;">
+                <div class="sw-ring" id="swRing">
+                    <canvas class="wb-orb" id="swOrb"></canvas>
+                </div>
+                <div class="tmr-display" id="swDisplay">
+                    <span class="roll-group" id="swMainGroup"></span><span class="tmr-ms-sep">.</span><span class="tmr-ms" id="swMsGroup">00</span>
+                </div>
+                <div class="sw-laps" id="swLaps"></div>
+                <div class="tmr-controls sw-controls">
+                    <button class="tmr-btn tmr-btn-reset" id="swResetBtn" title="Reset (R)" disabled>↺</button>
+                    <button class="tmr-btn tmr-btn-start" id="swStartBtn" title="Start / Pause (Space)">▶ Start</button>
+                    <button class="tmr-btn tmr-btn-secondary" id="swLapBtn" title="Lap (L)" disabled>Lap</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ========== 10. MUSIC ========== -->
+        <div class="panel" id="panel-music">
+
+            <!-- ====== LOCAL FILES VIEW ====== -->
+            <div id="musicLocalView">
+
+                <div id="musicDropZone" class="music-hero" role="button" tabindex="0" aria-label="Add audio files, or play and pause">
+                    <canvas class="ai-cloud" id="musicCloud" aria-hidden="true"></canvas>
+                    <div class="music-hero-hint" id="musicHeroHint">Drop files or a folder here, or click to add</div>
+                </div>
+                <input type="file" id="localFileInput" accept="audio/*,video/*,.mp3,.wav,.ogg,.oga,.opus,.flac,.m4a,.aac,.weba,.mp4,.m4v,.webm,.mov,.mkv" multiple
+                    style="display:none;">
+                <input type="file" id="localFolderInput" webkitdirectory multiple style="display:none;">
+
+                <!-- Now playing -->
+                <div id="localNowPlaying" style="display:none;">
+                    <div class="music-title" id="localNowTitle">—</div>
+
+                    <div class="music-progress-row">
+                        <span class="music-time" id="localTimeCurrent">0:00</span>
+                        <input type="range" id="localProgressBar" class="music-slider" min="0" max="100" value="0" aria-label="Position">
+                        <span class="music-time" id="localTimeTotal">0:00</span>
+                    </div>
+
+                    <div class="music-controls">
+                        <button class="music-btn music-btn-sm" id="localRepeatBtn" style="opacity:0.4;" title="Repeat"><span class="music-svg-icon" style="width:15px;height:15px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/replay.svg');mask-image:url('../icons/svg/audio/replay.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span></button>
+                        <button class="music-btn" id="localPrevBtn" title="Previous"><span class="music-svg-icon" style="width:15px;height:15px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/skip-previous-svgrepo-com.svg');mask-image:url('../icons/svg/audio/skip-previous-svgrepo-com.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span></button>
+                        <button class="music-btn music-play-btn" id="localPlayBtn" title="Play/Pause"><span class="music-svg-icon" data-icon="play" style="width:19px;height:19px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/play.svg');mask-image:url('../icons/svg/audio/play.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span></button>
+                        <button class="music-btn" id="localNextBtn" title="Next"><span class="music-svg-icon" style="width:15px;height:15px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/skip-next.svg');mask-image:url('../icons/svg/audio/skip-next.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span></button>
+                        <button class="music-btn music-btn-sm" id="localMuteBtn" title="Mute"><span class="music-svg-icon" data-icon="volume-high" style="width:16px;height:16px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/volume-high.svg');mask-image:url('../icons/svg/audio/volume-high.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span></button>
+                    </div>
+
+                    <div class="music-volume-row">
+                        <span class="music-vol-label" style="display:inline-flex;width:14px;height:14px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/volume-low.svg');mask-image:url('../icons/svg/audio/volume-low.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span>
+                        <input type="range" id="localVolumeSlider" class="music-slider" min="0" max="100" value="100" aria-label="Volume">
+                        <span class="music-vol-label" style="display:inline-flex;width:16px;height:16px;background-color:currentColor;-webkit-mask-image:url('../icons/svg/audio/volume-high.svg');mask-image:url('../icons/svg/audio/volume-high.svg');-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;"></span>
+                        </div>
+                </div>
+
+                <!-- Playlist -->
+                <div class="music-list-head">
+                    <div class="section-title">Playlist (<span id="localPlaylistCount">0</span>)</div>
+                    <div class="music-list-actions">
+                        <button class="wb-link-btn" id="musicAddBtn">Add files</button>
+                        <button class="wb-link-btn" id="musicFolderBtn">Add folder</button>
+                        <button class="wb-link-btn" id="musicReloadBtn" title="Restart the player without removing any track">Reload</button>
+                        <button class="wb-link-btn" id="localClearPlaylistBtn">Clear</button>
+                    </div>
+                </div>
+                <div id="localPlaylist">
+                    <div class="clip-empty" style="font-size:11px;">No files added</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========== 8. TEXT EXPANDER ========== -->
+        <div class="panel" id="panel-expander">
+            <div class="exp-new">
+                <div class="exp-new-row">
+                    <input type="text" id="expanderShortcut" class="exp-input exp-mono" placeholder="Shortcut, e.g. !mail" aria-label="Shortcut" autocomplete="off" spellcheck="false">
+                    <button class="btn btn-primary btn-sm" id="expanderAddBtn">Add</button>
+                </div>
+                <textarea id="expanderText" class="exp-input" placeholder="Text that replaces it…" rows="2" aria-label="Replacement text"></textarea>
+                <p class="exp-hint">A shortcut starting with a symbol (!mail) expands as you type it. A plain word expands after a space.</p>
+            </div>
+
+            <div class="exp-head">
+                <div class="section-title">Your shortcuts (<span id="expanderCount">0</span>)</div>
+                <input type="text" id="expanderSearch" class="exp-search" placeholder="Search" aria-label="Search shortcuts" hidden>
+            </div>
+            <div id="expanderList" class="exp-list">
+                <div class="clip-empty">No shortcuts defined</div>
+            </div>
+        </div>
+
+        <!-- ========== 9. QR SCANNER ========== -->
+        <div class="panel" id="panel-qr">
+            <div class="tmr-tab-row">
+                <button class="tmr-tab active" data-qrtab="qr">Scanner</button>
+                <button class="tmr-tab" data-qrtab="qrgen">Generator</button>
+            </div>
+            <div class="qr-hero" id="qrHero" role="button" tabindex="0" aria-label="Scan the QR codes on this page" title="Scan the QR codes on this page">
+                <canvas class="qr-cloud" id="qrCloud" aria-hidden="true"></canvas>
+            </div>
+            <button class="btn btn-primary btn-block qr-scan-btn" id="qrAreaSelectBtn">Scan this page</button>
+            <div class="qr-alt-actions">
+                <button class="qr-alt-link" id="qrManualBtn" title="Draw a box around the code (Alt+S)">Select an area</button>
+                <span class="qr-alt-sep">·</span>
+                <button class="qr-alt-link" id="qrUploadLink">Import an image</button>
+                <span class="qr-alt-sep">·</span>
+                <button class="qr-alt-link" id="qrPasteBtn">Paste</button>
+            </div>
+            <input type="file" id="qrFileInput" accept="image/*" style="display:none;">
+
+            <div id="qrResultCard" class="qr-result-card" style="display:none;">
+                <div class="qr-kind" id="qrKind">Detected content</div>
+                <div class="qr-result-text" id="qrResultText"></div>
+                <div class="qr-verdict" id="qrVerdict" hidden></div>
+                <div class="qr-actions">
+                    <button class="btn btn-secondary btn-sm" id="qrCopyBtn">Copy</button>
+                    <button class="btn btn-primary btn-sm" id="qrOpenBtn" style="display:none;">Open link</button>
+                </div>
+            </div>
+            <div class="clip-empty" id="qrEmpty">No QR code scanned yet</div>
+        </div>
+
+        <div class="panel" id="panel-compress">
+            <div id="compressDropZone" class="compress-drop-zone">
+                <button class="compress-info-corner-btn" id="compressInfoBtn" title="Supported formats" aria-label="Supported formats">i</button>
+                <div class="cmp-title">Drop images or a folder here</div>
+                <div class="cmp-sub">or click to choose files · up to 100 at a time</div>
+            </div>
+            <button class="compress-folder-btn" id="compressFolderBtn">Choose a folder</button>
+            <input type="file" id="compressFileInput" accept="image/*,.svg,.ppm,.pgm,.pbm,.pnm,.tga,.pcx" multiple style="display:none;">
+            <input type="file" id="compressFolderInput" webkitdirectory multiple style="display:none;">
+
+            <label class="pw-more-row pw-switch cmp-switch">
+                <span>Convert to JPEG when possible <em>smaller files, changes the format</em></span>
+                <input type="checkbox" id="compressConvertToggle">
+            </label>
+
+            <div id="compressProgressWrap" style="display:none; margin: 12px 0 0;">
+                <div class="compress-progress-bar"><div class="compress-progress-fill" id="compressProgressFill"></div></div>
+                <div class="compress-progress-label" id="compressProgressLabel">Compressing...</div>
+            </div>
+
+            <div class="cmp-head">
+                <div class="section-title">Results (<span id="compressCount">0</span>)</div>
+                <div class="cmp-head-actions">
+                    <button class="wb-link-btn" id="compressClearBtn">Clear</button>
+                    <button class="btn btn-primary btn-sm" id="compressZipBtn" disabled>Download all</button>
+                </div>
+            </div>
+            <div id="compressSummary" class="compress-summary" style="display:none;"></div>
+            <div id="compressResultsList" style="display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto;"></div>
+            <div class="clip-empty" id="compressEmpty">No images compressed yet</div>
+            <p class="prot-note">Quality is chosen automatically for each image. Several folders can be added one after another.</p>
+        </div>
+
+        <!-- ========== 13. TAB TRIAGE ========== -->
+        <div class="panel" id="panel-tabtriage">
+            <button class="tt-switch off" id="tabTriageToggle" role="switch" aria-checked="false">
+                <span class="tt-switch-text"><strong id="ttState">Tab triage is off</strong><small>Tabs opened with the mouse wheel are sorted for you.</small></span>
+                <span class="tt-knob" aria-hidden="true"></span>
+            </button>
+            <div class="tt-flow-title">What happens to a tab you open in the background</div>
+            <div class="tt-flow" aria-hidden="true">
+                <span class="tt-step"><span class="tt-chip" id="ttChipTodo"><b>🔴 Not opened yet</b></span><small>waits here</small></span>
+                <span class="tt-link"><em>you open it</em><u></u></span>
+                <span class="tt-step"><span class="tt-chip tt-chip-none"><b>no group</b></span><small>back to normal</small></span>
+                <span class="tt-link"><em>you leave it</em><u></u></span>
+                <span class="tt-step"><span class="tt-chip" id="ttChipDone"><b>🟢 Already opened</b></span><small>moves here</small></span>
+            </div>
+            <div class="card tt-card">
+                <div class="tt-label">Group for tabs not opened yet</div>
+                <div class="tt-name-row"><input type="text" class="st-input" id="ttNameTodo" maxlength="40" aria-label="Name of the first group"></div>
+                <div class="tt-colors" id="ttColorsTodo" role="radiogroup" aria-label="Color of the first group"></div>
+                <div class="tt-label">Group for tabs already opened</div>
+                <div class="tt-name-row"><input type="text" class="st-input" id="ttNameDone" maxlength="40" aria-label="Name of the second group"></div>
+                <div class="tt-colors" id="ttColorsDone" role="radiogroup" aria-label="Color of the second group"></div>
+                <button class="wb-link-btn" id="ttReset">Reset names and colors</button>
+            </div>
+            <div class="card tt-card">
+                <div class="tt-label">White list: these sites are never sorted</div>
+                <textarea id="tabTriageWhite" class="st-input" rows="3" placeholder="one site per line, e.g. mail.google.com" spellcheck="false" aria-label="White list"></textarea>
+                <button class="btn btn-secondary btn-sm" id="tabTriageAddCurrent" style="margin-top:8px;">Add the current site</button>
+            </div>
+            <p class="prot-note">Only tabs opened with the mouse wheel or Ctrl+click are sorted. No tab is ever closed.</p>
+        </div>
+
+        <!-- ========== 12. AI-FREE SEARCH ========== -->
+        <div class="panel" id="panel-aisearch">
+            <button class="ai-orb" id="aiOrb" role="switch" aria-checked="true" aria-label="AI-free search" title="Click to turn AI-free search on or off">
+                <canvas class="ai-cloud" id="aiCloud" aria-hidden="true"></canvas>
+            </button>
+            <div class="ai-state" id="aiState" aria-live="polite">AI answers blocked</div>
+            <div class="ai-sub" id="aiSub">Your searches show the classic list of links.</div>
+            <div class="ai-detect" id="aiDetect">Works on Google and Brave Search</div>
+        </div>
+
+
+        <!-- ========== WEB PROTECTION ========== -->
+        <div class="panel" id="panel-protection">
+            <button class="prot-orb" id="protOrb" role="switch" aria-checked="true" aria-label="Web protection" title="Click to turn web protection on or off">
+                <canvas class="ai-cloud" id="protCloud" aria-hidden="true"></canvas>
+            </button>
+            <input type="checkbox" id="protEnabled" checked hidden>
+            <div class="ai-state" id="protState" aria-live="polite">Protection on</div>
+            <div class="ai-sub" id="protStats"></div>
+
+            <div class="prot-test">
+                <input type="text" id="protTestInput" placeholder="Check an address, e.g. example.com" spellcheck="false" aria-label="Address to check">
+                <button class="btn btn-primary btn-sm" id="protTestBtn">Check</button>
+            </div>
+            <div class="prot-result" id="protTestResult" role="status" hidden></div>
+
+            <details class="wb-fold prot-fold">
+                <summary>What is checked</summary>
+                <div class="prot-rows">
+                    <div class="prot-row">
+                        <div class="prot-info">
+                            <div class="prot-name">Dangerous links</div>
+                            <div class="prot-desc">Phishing look-alikes, fake brands, raw IP addresses. You are sent back to the previous page.</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="protDanger" checked><span class="switch-slider"></span></label>
+                    </div>
+                    <div class="prot-row">
+                        <div class="prot-info">
+                            <div class="prot-name">Adult sites</div>
+                            <div class="prot-desc">A warning before the page opens.</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="protAdult" checked><span class="switch-slider"></span></label>
+                    </div>
+                    <div class="prot-row">
+                        <div class="prot-info">
+                            <div class="prot-name">Page content</div>
+                            <div class="prot-desc">Reads each page on your device to spot fake logins and adult content.</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="protContent" checked><span class="switch-slider"></span></label>
+                    </div>
+                    <div class="prot-row">
+                        <div class="prot-info">
+                            <div class="prot-name">Live site check</div>
+                            <div class="prot-desc">Contacts a flagged site to see if it exists. That site can see your connection; no third party is involved.</div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="protProbe" checked><span class="switch-slider"></span></label>
+                    </div>
+                </div>
+            </details>
+
+            <details class="wb-fold prot-fold" id="protTrustFold">
+                <summary>Trusted sites <span class="qg-count" id="protTrustCount"></span></summary>
+                <div class="prot-trust">
+                    <div class="prot-test" style="margin-top:8px;">
+                        <input type="text" id="protTrustInput" placeholder="example.com" spellcheck="false" aria-label="Site to trust">
+                        <button class="btn btn-secondary btn-sm" id="protTrustAdd">Add</button>
+                    </div>
+                    <div class="prot-trust-tools">
+                        <button class="wb-link-btn" id="protTrustBookmarks">Trust all my bookmarks</button>
+                        <button class="wb-link-btn" id="protTrustClear" hidden>Remove all</button>
+                    </div>
+                    <input type="text" id="protTrustSearch" class="exp-search" placeholder="Search" aria-label="Search trusted sites" hidden>
+                    <div class="prot-trust-list" id="protTrustList"></div>
+                    <p class="prot-note" style="margin-top:8px;">A trusted site is never checked or flagged, and neither are its sub-sites. Reading your bookmarks needs a permission that Chrome asks you for; WorkBox gives it back as soon as the list is read.</p>
+                </div>
+            </details>
+
+            <p class="prot-note">A fast local filter, not a full database: it works alongside your browser's Safe Browsing and cannot catch every threat.</p>
+        </div>
+
+        <!-- ========== QR GENERATOR ========== -->
+        <div class="panel" id="panel-qrgen">
+            <div class="tmr-tab-row">
+                <button class="tmr-tab" data-qrtab="qr">Scanner</button>
+                <button class="tmr-tab active" data-qrtab="qrgen">Generator</button>
+            </div>
+
+            <!-- preview, always in view -->
+            <div class="card qg-preview-card">
+                <div class="qg-preview" id="qgPreview">
+                    <canvas id="qgCanvas" hidden></canvas>
+                    <div class="qg-empty" id="qgEmpty">
+                        <canvas class="qg-cloud" id="qgCloud" aria-hidden="true"></canvas>
+                        <span>Fill in the content below to generate your QR code</span>
+                    </div>
+                </div>
+                <div class="qg-status" id="qgStatus"></div>
+                <div class="qg-actions">
+                    <button class="btn btn-primary btn-sm" id="qgPng">Download</button>
+                    <select id="qgFormat" class="qg-mini" aria-label="File format">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="svg">SVG</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" id="qgCopy">Copy</button>
+                </div>
+            </div>
+
+            <!-- one category of settings at a time -->
+            <div class="qg-tabs" id="qgTabs" role="tablist">
+                <button class="qg-tab active" data-qgtab="content" role="tab">Content</button>
+                <button class="qg-tab" data-qgtab="shape" role="tab">Shape</button>
+                <button class="qg-tab" data-qgtab="colors" role="tab">Colors</button>
+                <button class="qg-tab" data-qgtab="logo" role="tab">Logo</button>
+                <button class="qg-tab" data-qgtab="export" role="tab">Export</button>
+                <button class="qg-tab" data-qgtab="saved" role="tab">Saved <span class="qg-count" id="qgHistCount"></span></button>
+            </div>
+
+            <div class="card qg-pane" data-qgpane="content">
+                <div class="qg-groups" id="qgGroups"></div>
+                <div class="qg-chips qg-types" id="qgTypes"></div>
+                <div id="qgFields"></div>
+            </div>
+
+            <div class="card qg-pane" data-qgpane="shape" hidden>
+                <div class="qg-label" style="margin-top:0;">Code shape</div>
+                <div class="qg-chips" id="qgShape">
+                    <button class="cat-tag" data-shape="square">Square</button>
+                    <button class="cat-tag" data-shape="rounded">Rounded</button>
+                    <button class="cat-tag" data-shape="circle">Circle</button>
+                </div>
+                <div class="qg-label">Dots</div>
+                <div class="qg-chips" id="qgModules">
+                    <button class="cat-tag" data-ms="square">Square</button>
+                    <button class="cat-tag" data-ms="rounded">Rounded</button>
+                    <button class="cat-tag" data-ms="dots">Dots</button>
+                    <button class="cat-tag" data-ms="bars">Lines</button>
+                    <button class="cat-tag" data-ms="classy">Leaf</button>
+                    <button class="cat-tag" data-ms="diamond">Diamond</button>
+                    <button class="cat-tag" data-ms="star">Star</button>
+                    <button class="cat-tag" data-ms="heart">Heart</button>
+                </div>
+                <div class="qg-grid2">
+                    <div>
+                        <div class="qg-label">Corner frame</div>
+                        <select id="qgEyeFrame">
+                            <option value="square">Square</option>
+                            <option value="rounded">Rounded</option>
+                            <option value="circle">Circle</option>
+                            <option value="leaf">Leaf</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="qg-label">Corner center</div>
+                        <select id="qgEyeBall">
+                            <option value="square">Square</option>
+                            <option value="rounded">Rounded</option>
+                            <option value="circle">Circle</option>
+                            <option value="leaf">Leaf</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Margin</span>
+                    <input type="range" id="qgMargin" min="0" max="8" value="3" class="qg-range">
+                    <span class="qg-val" id="qgMarginVal">3</span>
+                </div>
+                <p class="qg-note">In a round code, the dots around the square are decoration: the code itself stays in the middle.</p>
+            </div>
+
+            <div class="card qg-pane" data-qgpane="colors" hidden>
+                <div class="qg-label" style="margin-top:0;">Ready-made styles</div>
+                <div class="qg-chips" id="qgPresets">
+                    <button class="cat-tag" data-preset="classic">Classic</button>
+                    <button class="cat-tag" data-preset="violet">Violet</button>
+                    <button class="cat-tag" data-preset="ocean">Ocean</button>
+                    <button class="cat-tag" data-preset="sunset">Sunset</button>
+                    <button class="cat-tag" data-preset="forest">Forest</button>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Color</span>
+                    <input type="color" class="qg-color" id="qgFg1" value="#000000" aria-label="Color">
+                    <input type="color" class="qg-color" id="qgFg2" value="#7c3aed" aria-label="Second color" hidden>
+                    <label class="qg-check"><input type="checkbox" id="qgGradient"> Gradient</label>
+                    <select id="qgDirection" class="qg-mini" hidden aria-label="Gradient direction">
+                        <option value="diagonal">Diagonal</option>
+                        <option value="horizontal">Horizontal</option>
+                        <option value="vertical">Vertical</option>
+                    </select>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Corners</span>
+                    <label class="qg-check"><input type="checkbox" id="qgEyeCustom"> Own color</label>
+                    <input type="color" class="qg-color" id="qgEyeColor" value="#4c1d95" aria-label="Corner color" hidden>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Background</span>
+                    <input type="color" class="qg-color" id="qgBg" value="#ffffff" aria-label="Background color">
+                    <label class="qg-check"><input type="checkbox" id="qgTransparent"> Transparent</label>
+                </div>
+            </div>
+
+            <div class="card qg-pane" data-qgpane="logo" hidden>
+                <div class="qg-row" style="margin-top:0;">
+                    <button class="btn btn-secondary btn-sm" id="qgLogoBtn">Choose an image</button>
+                    <button class="btn btn-secondary btn-sm" id="qgLogoSite" title="Fetch the logo of the website in your link">Use the site's logo</button>
+                    <button class="btn btn-secondary btn-sm" id="qgLogoRemove" hidden>Remove</button>
+                    <img id="qgLogoThumb" class="qg-thumb" alt="" hidden>
+                    <input type="file" id="qgLogoFile" accept="image/*" style="display:none;">
+                </div>
+                <div id="qgLogoOpts" hidden>
+                    <label class="pw-more-row pw-switch qg-switch">
+                        <span>White background behind the logo <em>keeps the whole logo, white and see-through parts stay readable</em></span>
+                        <input type="checkbox" id="qgLogoPlate">
+                    </label>
+                    <label class="pw-more-row pw-switch qg-switch">
+                        <span>Use the QR code color <em>colors take the QR code color, white parts stay white</em></span>
+                        <input type="checkbox" id="qgLogoTint">
+                    </label>
+                    <div class="qg-row">
+                        <span class="qg-row-name">Size</span>
+                        <input type="range" id="qgLogoScale" min="10" max="30" value="22" class="qg-range">
+                        <span class="qg-val" id="qgLogoScaleVal">22%</span>
+                    </div>
+                    <div class="qg-row">
+                        <span class="qg-row-name">Shape</span>
+                        <select id="qgLogoShape" class="qg-mini">
+                            <option value="circle">Round</option>
+                            <option value="square">Square</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="qg-note qg-logo-msg" id="qgLogoMsg" role="status" hidden></p>
+                <p class="qg-note">Any image works, up to 2 MB (bigger ones are compressed for you). With a logo, error correction switches to High automatically so the code still scans.</p>
+            </div>
+
+            <div class="card qg-pane" data-qgpane="export" hidden>
+                <div class="qg-row" style="margin-top:0;">
+                    <span class="qg-row-name">Image size</span>
+                    <select id="qgSize" class="qg-mini" aria-label="Export size">
+                        <option value="512">512 px</option>
+                        <option value="1024" selected>1024 px</option>
+                        <option value="2048">2048 px</option>
+                    </select>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Error correction</span>
+                    <select id="qgEc" class="qg-mini">
+                        <option value="auto">Auto</option>
+                        <option value="L">Low</option>
+                        <option value="M">Medium</option>
+                        <option value="Q">Quartile</option>
+                        <option value="H">High</option>
+                    </select>
+                </div>
+                <div class="qg-row">
+                    <span class="qg-row-name">Readability</span>
+                    <button class="wb-link-btn qg-test-btn" id="qgTest">
+                        <span class="qg-test-icon" aria-hidden="true" hidden>✔</span>
+                        <span id="qgTestLabel">Test this QR code</span>
+                    </button>
+                </div>
+                <div class="qg-test-result" id="qgTestResult" role="status" hidden></div>
+                <p class="qg-note">PNG keeps a transparent background, JPG is the lightest, SVG stays sharp at any print size. Choose the format next to the Download button.</p>
+            </div>
+
+            <div class="card qg-pane" id="qgHistoryCard" data-qgpane="saved" hidden>
+                <div class="qg-hist-head">
+                    <div class="section-title" style="margin-bottom:0;">Saved QR codes</div>
+                    <label class="qg-check"><input type="checkbox" id="qgAutoSave" checked> Auto-save</label>
+                </div>
+                <div id="qgHistList" class="qg-hist-list"></div>
+                <div class="qg-hist-empty" id="qgHistEmpty">Your QR codes are saved here automatically as you create them.</div>
+                <div class="qg-hist-foot">
+                    <button class="btn btn-secondary btn-sm" id="qgHistMore" hidden>Show more</button>
+                    <button class="btn btn-secondary btn-sm" id="qgHistClear" hidden>Clear all</button>
+                </div>
+                <p class="qg-note">Saved on this device only, content included (a Wi-Fi password, for example). Delete an entry with ✕.</p>
+            </div>
+        </div>
+
+    </div><!-- /panels-container -->
+
+    <!-- Import the history exported by another clipboard extension -->
+    <div class="exp-modal" id="clipForeignModal" hidden>
+        <div class="exp-modal-box" role="dialog" aria-modal="true" aria-labelledby="clipForeignTitle">
+            <div class="exp-modal-title" id="clipForeignTitle">Import from another extension</div>
+            <p class="cf-help">In your other clipboard extension, use its Export or Backup option, then give the file to WorkBox. JSON, CSV and text files are understood. Everything stays on this device.</p>
+            <button class="btn btn-secondary btn-block" id="clipForeignPick">Choose the exported file</button>
+            <input type="file" id="clipForeignFile" accept=".json,.csv,.txt,.tsv,.bak,application/json,text/plain,text/csv" style="display:none;">
+            <label class="exp-label" for="clipForeignText">or paste the exported content</label>
+            <textarea id="clipForeignText" class="exp-input" rows="3" spellcheck="false"></textarea>
+            <div class="cf-preview" id="clipForeignPreview" role="status" hidden></div>
+            <div class="exp-modal-actions">
+                <button class="btn btn-secondary btn-sm" id="clipForeignCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="clipForeignGo" disabled>Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit a text shortcut: separate window, the "new shortcut" form is left untouched -->
+    <div class="exp-modal" id="expanderModal" hidden>
+        <div class="exp-modal-box" role="dialog" aria-modal="true" aria-labelledby="expanderModalTitle">
+            <div class="exp-modal-title" id="expanderModalTitle">Edit shortcut</div>
+            <label class="exp-label" for="expEditShortcut">Shortcut</label>
+            <input type="text" id="expEditShortcut" class="exp-input exp-mono" autocomplete="off" spellcheck="false">
+            <label class="exp-label" for="expEditText">Replacement text</label>
+            <textarea id="expEditText" class="exp-input" rows="6"></textarea>
+            <div class="exp-modal-actions">
+                <button class="btn btn-secondary btn-sm" id="expEditCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="expEditSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== BOTTOM NAVIGATION BAR ========== -->
+    <div class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-tab="clipboard" title="Clipboard">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('../icons/svg/menu/presse%20papier.svg'); mask-image: url('../icons/svg/menu/presse%20papier.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="calculator" title="Calculator">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('../icons/svg/menu/calcul.svg'); mask-image: url('../icons/svg/menu/calcul.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="notes" title="Notes">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('../icons/svg/menu/note.svg'); mask-image: url('../icons/svg/menu/note.svg');"></span>
+        </button>
+        <button class="nav-item" data-tab="music" title="Music">
+            <span class="nav-icon"
+                style="-webkit-mask-image: url('../icons/svg/menu/music.svg'); mask-image: url('../icons/svg/menu/music.svg');"></span>
+        </button>
+
+        <button class="nav-item nav-more-btn" id="gridMenuTrigger" title="More tools">
+            <svg class="nav-icon-svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="2.5" />
+                <circle cx="12" cy="12" r="2.5" />
+                <circle cx="19" cy="12" r="2.5" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- ========== GRID OVERLAY MENU ========== -->
+    <div class="grid-overlay" id="gridOverlay">
+        <div class="grid-overlay-backdrop" id="gridOverlayBackdrop"></div>
+        <div class="grid-panel" id="gridPanel">
+            <div class="grid-header">
+                <span class="grid-title">All tools</span>
+                <button class="grid-close-btn" id="gridCloseBtn">&times;</button>
+            </div>
+            <div class="grid-items">
+                <button class="grid-item" data-tab="colorpicker">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('../icons/svg/menu/color.svg'); mask-image: url('../icons/svg/menu/color.svg');"></span>
+                    <span class="grid-label">Color</span>
+                </button>
+                <button class="grid-item" data-tab="password">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('../icons/svg/menu/mdp.svg'); mask-image: url('../icons/svg/menu/mdp.svg');"></span>
+                    <span class="grid-label">Password</span>
+                </button>
+                <button class="grid-item" data-tab="converter">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('../icons/svg/menu/convert.svg'); mask-image: url('../icons/svg/menu/convert.svg');"></span>
+                    <span class="grid-label">Convert</span>
+                </button>
+                <button class="grid-item" data-tab="timer">
+                    <span class="grid-icon"
+                        style="-webkit-mask-image: url('../icons/svg/menu/minuteur.svg'); mask-image: url('../icons/svg/menu/minuteur.svg');"></span>
+                    <span class="grid-label">Timer</span>
+                </button>
+                <button class="grid-item" data-tab="expander">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/note.svg'); mask-image: url('../icons/svg/menu/note.svg');"></span>
+                    <span class="grid-label">Shortcuts</span>
+                </button>
+                <button class="grid-item" data-tab="qr">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/qr-code.svg'); mask-image: url('../icons/svg/menu/qr-code.svg');"></span>
+                    <span class="grid-label">QR Code</span>
+                </button>
+                <button class="grid-item" data-tab="compress">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/compress.svg'); mask-image: url('../icons/svg/menu/compress.svg');"></span>
+                    <span class="grid-label">Compressor</span>
+                </button>
+                <button class="grid-item" data-tab="aisearch">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/shield.svg'); mask-image: url('../icons/svg/menu/shield.svg');"></span>
+                    <span class="grid-label">AI-free search</span>
+                </button>
+                <button class="grid-item" data-tab="tabtriage">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/tabs.svg'); mask-image: url('../icons/svg/menu/tabs.svg');"></span>
+                    <span class="grid-label">Tab triage</span>
+                </button>
+                <button class="grid-item" data-tab="protection">
+                    <span class="grid-icon" style="-webkit-mask-image: url('../icons/svg/menu/protection.svg'); mask-image: url('../icons/svg/menu/protection.svg');"></span>
+                    <span class="grid-label">Protection</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Custom Config/Alert Modals -->
+
+    <div class="modal-overlay" id="clipInfoModal"
+        style="display:none; align-items:center; justify-content:center; padding: 20px;">
+        <div class="modal-content info-bubble-content"
+            style="max-height: 80vh; overflow-y: auto; text-align: left; padding: 20px; width: 100%; max-width: 320px;">
+            <div class="modal-header"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <div class="modal-title" style="margin:0; font-size:15px; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">ℹ️</span> WorkBox detects
+                </div>
+            </div>
+            <div class="clip-info-list"
+                style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:10px;"><span>🔗</span> <span><b>Link:</b> URLs. Once you have copied 3 links from the same site, it gets its own filter with its icon and name</span></div>
+                <div style="display:flex; gap:10px;"><span>🎥</span> <span><b>Video:</b> .mp4, .webm, .mov + YouTube/TikTok links</span></div>
+                <div style="display:flex; gap:10px;"><span>🖼️</span> <span><b>Image:</b> .png, .jpg, .gif, .webp, .svg</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>🎨</span> <span><b>Color:</b> Hex, RGB, RGBA, HSL</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>🔐</span> <span><b>API Key:</b> OpenAI, GitHub, Slack, Google, AWS, Stripe, JWT...</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>🔒</span> <span style="color:var(--accent);"><b>Private:</b>
+                        Emails, phone numbers, passwords, API keys</span></div>
+                <div style="display:flex; gap:10px;"><span>✉️</span> <span><b>Email:</b> Email addresses</span></div>
+                <div style="display:flex; gap:10px;"><span>📞</span> <span><b>Phone:</b> Local/international numbers</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>🔑</span> <span><b>Password:</b> Complex text
+                        (8-64 characters)</span></div>
+                <div style="display:flex; gap:10px;"><span>📅</span> <span><b>Date:</b> Dates and times</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>💰</span> <span><b>Price:</b> Currency amounts (€, $, £...)</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>💻</span> <span><b>Code:</b> JS, Python, Java/C#, HTML, CSS, SQL, Shell, JSON, YAML</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>🔢</span> <span><b>Number:</b> Digits only</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>📍</span> <span><b>Address:</b> Postal addresses</span>
+                </div>
+                <div style="display:flex; gap:10px;"><span>📝</span> <span><b>Text:</b> Basic (default category)</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="clipInfoOkBtn" style="width:100%; margin-top:20px;">OK</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="compressInfoModal"
+        style="display:none; align-items:center; justify-content:center; padding: 20px;">
+        <div class="modal-content info-bubble-content"
+            style="max-height: 80vh; overflow-y: auto; text-align: left; padding: 20px; width: 100%; max-width: 320px;">
+            <div class="modal-header"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <div class="modal-title" style="margin:0; font-size:15px; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">🗜️</span> Supported formats
+                </div>
+            </div>
+            <div class="clip-info-list"
+                style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:10px;"><span>🖼️</span> <span><b>JPG / JPEG, PNG, WEBP, GIF, BMP:</b> recompressed in their original format by default (or kept as-is if it wouldn't help, or if a transparent background is detected). Enable "Convert to JPEG when possible" to allow converting to JPEG for extra savings.</span></div>
+                <div style="display:flex; gap:10px;"><span>✒️</span> <span><b>SVG:</b> optimized directly (comments, metadata and extra whitespace stripped) — stays vector, never rasterized</span></div>
+                <div style="display:flex; gap:10px;"><span>🎮</span> <span><b>TGA (Truevision):</b> format used in video games and 3D rendering, decoded and compressed</span></div>
+                <div style="display:flex; gap:10px;"><span>💾</span> <span><b>PCX:</b> legacy format from DOS-era software, decoded and compressed</span></div>
+                <div style="display:flex; gap:10px;"><span>🧮</span> <span><b>PPM / PGM / PBM (Netpbm):</b> very simple raw format used in programming/research, decoded and compressed</span></div>
+                <div style="display:flex; gap:10px;"><span>🚫</span> <span style="color:var(--text-muted);"><b>Not supported:</b> camera RAW, EXR/DPX, FITS — specialized formats that would need decoders too heavy for a "lite" extension</span></div>
+            </div>
+            <button class="btn btn-primary" id="compressInfoOkBtn" style="width:100%; margin-top:20px;">OK</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="allNotesModal"
+        style="display:none; align-items:center; justify-content:center; padding: 20px; background:rgba(10,8,20,0.12); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);">
+        <div class="all-notes-content">
+            <div class="all-notes-header">
+                <span class="all-notes-title">All notes</span>
+                <button id="allNotesCloseBtn" class="all-notes-close" title="Close" aria-label="Close">✕</button>
+            </div>
+            <div id="allNotesList" class="all-notes-list"></div>
+        </div>
+    </div>
+
+
+
+    <!-- Toast -->
+    <div class="toast" id="toast">Copied!</div>
+
+    <div id="tagModalOverlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;">
+        <div
+            style="background:#1a1530; border:1px solid rgba(139,92,246,0.35); border-radius:16px; padding:20px; width:240px; box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <div style="font-size:13px; font-weight:600; color:#fff; margin-bottom:12px;">🏷️ New tag</div>
+            <input id="tagModalInput" type="text" placeholder="Tag name..."
+                style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid rgba(139,92,246,0.4); background:rgba(255,255,255,0.06); color:#fff; font-size:12px; outline:none; box-sizing:border-box;">
+            <div style="margin-top:10px;">
+                <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:6px;">Color</div>
+                <div id="tagColorPicker" style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <div class="tag-color-opt" data-color="purple"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(139,92,246,0.3);border:2px solid rgba(139,92,246,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="blue"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(56,189,248,0.3);border:2px solid rgba(56,189,248,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="green"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,0.3);border:2px solid rgba(34,197,94,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="orange"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(251,146,60,0.3);border:2px solid rgba(251,146,60,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="pink"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(236,72,153,0.3);border:2px solid rgba(236,72,153,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="red"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,0.3);border:2px solid rgba(239,68,68,0.8);cursor:pointer;">
+                    </div>
+                    <div class="tag-color-opt" data-color="cyan"
+                        style="width:20px;height:20px;border-radius:50%;background:rgba(34,211,238,0.3);border:2px solid rgba(34,211,238,0.8);cursor:pointer;">
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button id="tagModalCancel"
+                    style="flex:1; padding:7px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.5); font-size:12px; cursor:pointer;">Cancel</button>
+                <button id="tagModalOk"
+                    style="flex:1; padding:7px; border-radius:8px; border:none; background:#7c3aed; color:#fff; font-size:12px; font-weight:600; cursor:pointer;">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../lib/jsQR.js"></script>
+    <script src="../lib/qrcode.js"></script>
+    <!-- crypto before clipstore before bigtext: each one uses the previous -->
+    <script src="../lib/crypto.js"></script>
+    <script src="../lib/clipstore.js"></script>
+    <script src="qrgen.js"></script>
+    <script src="../lib/protection.js"></script>
+    <script src="../lib/bigtext.js"></script>
+    <script src="orb.js"></script>
+    <script src="popup.js"></script>
+    <script src="tour.js"></script>
+</body>
+
+</html>

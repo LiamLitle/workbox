@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkBox – Changelog</title>
+<link rel="stylesheet" href="legal.css">
+<style>
+  /* the same two font stacks as the WorkBox popup: system sans for text, monospace for titles and labels */
+  :root { --font-label: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+          --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+  body { font-family: var(--font-body); }
+  .brand, h1, h2, h3, .meta, code, footer { font-family: var(--font-label); }
+  h1 { font-size: 26px; letter-spacing: 0.01em; }
+  .brand, h3 { letter-spacing: 0.18em; }
+  .version { margin-top: 38px; }
+  .version h2 { font-size: 18px; margin: 0 0 4px; }
+  .version h2 .date { color: var(--muted); font-weight: 500; font-size: 14px; margin-left: 6px; }
+  .version h3 { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 22px 0 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="brand">WorkBox</header>
+  <h1>Changelog</h1>
+  <p class="meta">All notable changes to WorkBox are listed here.</p>
+
+  <p class="lead">Format inspired by <a href="https://keepachangelog.com/en/1.0.0/" target="_blank" rel="noopener">Keep a Changelog</a>. Times are US Eastern (ET).</p>
+
+  <section class="version" id="v1-2-0">
+    <h2>[1.2.0]<span class="date">October 11, 2026</span></h2>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>A first-run notice that says what WorkBox does with your clipboard</strong>, in plain words: it is read in the background, about every 2.5 seconds, and everything stays on this device. Two answers: keep it on, or turn it off. Answering "off" really stops the reading — it is not a dismissed banner.</li>
+      <li><strong>A "Save what I copy" switch</strong> in Settings &gt; Privacy, with the same explanation, so the choice can be changed at any time.</li>
+      <li>Answering "off" shows a short confirmation: the clipboard is off, and Settings &gt; Privacy &gt; "Save what I copy" is where to turn it back on.</li>
+      <li>While it is off, the clipboard panel reads as <strong>disconnected</strong> — a dashed, muted state that says nothing new is being read and points to the switch. No alarm colour, no button. Your existing history stays readable and copyable: turning monitoring off stops the capture, it does not throw away what is already saved.</li>
+      <li><strong>Your clipboard texts can now be encrypted.</strong> Set a password in Settings and everything you copy is encrypted before it is written: each text, the preview of very long ones, and the compressed body of those long texts. WorkBox uses one random key for the data; your password only protects that key, so changing your password never rewrites your texts.</li>
+      <li>A <strong>recovery code</strong> is shown once when you set the password. It starts with <strong>WP</strong>, is required when you type it, and is never saved in your clipboard history, even when you copy it.</li>
+      <li>The key is held in memory and never written to disk. <strong>One unlock covers a whole browser session</strong> — not every time the popup opens. If the password is lost, the recovery code opens the vault and can also be used to set a new password or to turn protection off.</li>
+      <li>Copies made while the vault is locked wait in memory and are encrypted at the next unlock. Nothing is ever stored in clear while waiting.</li>
+      <li>Texts longer than 100,000 characters are covered too: their compressed body, kept apart in the database, is encrypted as well — including those saved before you set a password.</li>
+      <li>If you already had a password from an earlier version, it is reused to build the encrypted vault on your next unlock: nothing to re-enter, nothing to reset.</li>
+      <li><strong>Private sites</strong> (Settings &gt; Privacy): nothing you copy on those sites is saved. Up to 100 sites, with a button to add the one you are on.</li>
+      <li><strong>Settings are now in five tabs</strong> (Backup, Privacy, Storage, Tuto, About), and WorkBox remembers where you were for 10 minutes if you close the window.</li>
+      <li>The <strong>Storage panel</strong> shows a globe that fills as your space does: round points are texts, diamonds are images, and the colour goes from blue to black.</li>
+      <li><strong>Guided tours and a written guide inside WorkBox.</strong> A short tour shows where everything is: a glowing ring glides from one button to the next, a hand shows where to click, and you press the highlighted buttons yourself. Settings &gt; <strong>Tuto</strong> &gt; Learn a tool has a mini-tour for every tool, including Settings. Where a tool is still empty, example rows are drawn on screen for the tour only: nothing is saved, and they disappear when the tour ends. The written guide has one short section per tool, with the keyboard shortcuts. Everything always matches the version you have installed.</li>
+      <li><strong>Tab triage groups are easier to tell apart:</strong> their names now start with a coloured dot (🔴 Not opened yet, 🟢 Already opened).</li>
+      <li><strong>The Tab triage diagram is clearer:</strong> it fits on one line, and its two groups look like the real group labels on the tab bar, filled with the color you picked.</li>
+      <li>Category buttons show the first five, then a discreet "+N more / less".</li>
+      <li><strong>Paste from clipboard</strong> button now also saves very long texts (millions of characters) and works even when the text was deleted a moment ago.</li>
+      <li>Black site icons are shown in white so they stay visible on the dark window.</li>
+      <li><strong>Storage panel</strong> in Settings: see how full your saved texts (1 GB) and images (300 MB) are. At 80% you get a warning; at 100% new items are not saved until you make room. Nothing is deleted for you.</li>
+      <li><strong>Faster clipboard list</strong>: the first 40 texts and 30 images are drawn right away, and more appear as you scroll.</li>
+      <li><strong>Automatic compression by tiers</strong>: your 100 newest items stay untouched. Older images are shrunk in steps, and older long texts (20,000 characters or more) are stored compressed. Pinned items are never touched.</li>
+      <li><strong>Three repeat modes</strong> in the music player: off, whole playlist, or this track only.</li>
+      <li>The password generator now shows the characters locking in one by one.</li>
+      <li>This changelog, linked from Settings.</li>
+    </ul>
+
+    <h3>Removed</h3>
+    <ul>
+      <li>The ready-made site tags on copied links (GitHub, YouTube, Spotify, Instagram, Discord and the others). A link is now simply a Link; once you have copied three links from the same site, WorkBox creates a filter for it by itself, with the site's icon and name. Tags of this kind already on your items are removed.</li>
+      <li>The <strong>5-hour memory of deleted texts</strong>. Keeping a readable copy of everything you deleted served little purpose, and it worked against protecting the clipboard. Deleting a text now removes it for good.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>1.2.0 is the first minified version of WorkBox</strong>: its scripts and styles are compacted for a lighter download (about a third smaller) and a slightly faster start. Nothing changes in how it works, and licence notices of the included libraries are kept.</li>
+      <li>A save that fails (storage full, for instance) now tells you instead of showing "Copied!" while nothing was written.</li>
+      <li><strong>To-do simplified</strong>: a plain checklist. Type a task, tick it when done, double-click to edit, and finished tasks sink to the bottom. The search, filters, priorities and sort are gone; your existing tasks are kept.</li>
+      <li>The recovery-code window is simpler and calmer: the code in a clean grid, a Copy button and one confirmation.</li>
+      <li>The calculator no longer flashes "Error" while you are still typing (8*): the result updates once the expression makes sense, and "Error" only appears when you press Enter.</li>
+      <li>Converter: the Costa Rican colón (CRC) is added, and the rates now say which day they are from. The source publishes one set per day, so live sites can differ slightly.</li>
+      <li>The clipboard now keeps up to <strong>5,000 texts</strong> and <strong>1,000 images</strong> (it was 1,000 and 300).</li>
+      <li>The notice for a text that is too long now gives its exact number of characters, how far over the limit it is, and no longer shows a time.</li>
+      <li>The vinyl in the music player is shown whole, with soft edges.</li>
+      <li>Image buttons use the same icons as the rest of WorkBox instead of emoji, and a pinned item is shown in rose.</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li>Removing the password protection could leave very long texts (over 100,000 characters) permanently unreadable: their compressed body stayed encrypted while the key was deleted. They are now decrypted first, and the key is only deleted once everything has been written. If the write fails (storage full), nothing is changed and you can try again. A single damaged text no longer blocks the removal either.</li>
+      <li>A text you copy while WorkBox is encrypting your existing history is no longer lost, and several copies made at the same time while the vault is locked are all kept.</li>
+      <li>The right-click menu no longer logs a "Cannot create item with duplicate id" error for each of its entries after an update or a browser restart. Two startup events were rebuilding the menu at the same time.</li>
+      <li>The toggle switches no longer look broken: when the text next to one was long, the switch was squeezed by the layout while its knob kept its size, so the knob slid out of its own track. It keeps its size now, the colour fades with the knob instead of snapping, and a keyboard focus ring is visible.</li>
+    </ul>
+  </section>
+
+  <section class="version" id="v1-1-0">
+    <h2>[1.1.0]<span class="date">October 6, 2026</span></h2>
+    <p class="meta">Work on this version started on 2026-10-01.</p>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Tab triage</strong>, a new tool: tabs opened with the mouse wheel or <code>Ctrl</code> + click wait in a "Not opened yet" group and move to "Already opened" once you visit them. Rename the groups, choose their colors, add a white list. Off by default.</li>
+      <li><strong>Clipboard site labels</strong>: a copied link shows where it comes from, with the site icon. Every filter has a counter, and a <strong>Sites</strong> menu lists all sites, the ones you copy from most first.</li>
+      <li><strong>Very long texts</strong>: a text of more than 100,000 characters is compressed and stored apart, so the list stays fast. The list shows a short preview with its size and line count; <strong>Copy</strong> gives the full text.</li>
+      <li><strong>Size limit of 5,000,000 characters</strong> per copied text. A longer text is not saved, and you are told with a banner in the popup and a notification.</li>
+      <li>New shortcut <code>Alt</code> + <code>C</code>: open the clipboard history from any page.</li>
+      <li>A video tutorial, available from Settings &gt; Help.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li>Backup and restore are now two separate sections. When restoring, choose to keep your current data or replace it.</li>
+      <li>New animated visuals for the music player and AI-free search.</li>
+    </ul>
+  </section>
+
+  <section class="version" id="v1-0-3">
+    <h2>[1.0.3]<span class="date">August 20, 2026</span></h2>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>"Detect my search engine automatically" now finishes.</strong> To find your engine, WorkBox opens a search in a new tab, and opening a tab closes the WorkBox window. The window was the one doing the detection, so it was cut off halfway and never saved the result. The detection now runs in the background, survives the window closing, and tells you the result with a notification. The checkbox is already set the next time you open WorkBox.</li>
+      <li><strong>Bing: the AI block is caught in more places.</strong> Two more spots where Bing shows its generated answer (the chat answer and the summary box) are now recognised and hidden.</li>
+    </ul>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>Bing: <code>-ai</code> is added to your search</strong> (once, never twice), in addition to <code>copilot=off</code>. Fewer AI results are returned in the first place, instead of only being hidden afterwards.</li>
+      <li>The extension is now called <strong>WorkBox – All-in-One Toolbox</strong>, with a new short description: "Your everyday browser toolbox — clipboard manager, password generator, QR scanner and more, 100% local."</li>
+      <li>The version badge in the window now reads v1.0.3.</li>
+    </ul>
+
+    <h3>Removed</h3>
+    <ul>
+      <li>The <strong>Opera</strong> choice in the browser list of the search settings, and its detection. WorkBox is built for Chrome, Brave and Edge.</li>
+    </ul>
+  </section>
+
+  <section class="version" id="v1-0-2">
+    <h2>[1.0.2]<span class="date">Date unknown</span></h2>
+
+    <h3>Changed</h3>
+    <ul>
+      <li><strong>A new name and a longer description</strong>, written to be found and understood faster: "WorkBox – 100% Local Clipboard Manager, Password Generator &amp; AI Search", then "Clipboard manager, notes, password generator, unit converter, QR scanner, image compressor &amp; AI-free search – one local extension."</li>
+      <li><strong>Sizes are written in English units:</strong> B, KB and MB instead of o, Ko and Mo, for the size of images, files and exports.</li>
+      <li><strong>New icons</strong> (16, 48 and 128 px) for the toolbar, the extensions page and the store.</li>
+      <li>The version badge in the window now reads v1.0.2.</li>
+      <li>The README, written in French, is no longer part of the package.</li>
+    </ul>
+
+    <h3>Fixed</h3>
+    <ul>
+      <li><strong>Bing: a generated answer box with an unknown name is hidden too.</strong> Bing renames its Copilot box often, so besides the known names, WorkBox now also looks for any element marked "Copilot" and hides it, with the empty gap it would leave. The "Copilot" tab of the Bing menu is left alone: it is real navigation, not an AI answer.</li>
+    </ul>
+  </section>
+
+  <section class="version" id="v1-0-1">
+    <h2>[1.0.1]<span class="date">Date unknown</span></h2>
+    <p class="meta">The first version of WorkBox, called "WorkBox" with the line "All-in-one toolbox... 100% local". <code>Alt</code> + <code>W</code> opens it from any page.</p>
+
+    <h3>Added</h3>
+    <ul>
+      <li><strong>Clipboard manager.</strong> What you copy or cut on a web page is saved, and a hidden page also reads the system clipboard about every 2.5 seconds, so texts and images copied in other apps are caught as well. A text you copied again moves back to the top and keeps its pin. Paths such as <code>C:\…</code>, <code>blob:</code> and <code>file:</code> are ignored.</li>
+      <li>Every text is <strong>sorted automatically</strong>: Link (with Video and Image), Email, Phone, Number, Document (pdf, doc, xls, ppt, txt, csv), Code (the language is guessed), Password, API key or token (OpenAI, GitHub, Slack, Google, AWS, Stripe, SendGrid, JWT), Address, Private, or Text. The type of field you copied from (password, email, phone) is trusted first. Links also get a site tag: GitHub, YouTube, Spotify, Twitter / X, Facebook, Instagram, TikTok, LinkedIn, Reddit, Pinterest, Snapchat, WhatsApp, Telegram, Threads, Discord, Twitch, Figma, Google Drive and more. You can add your own tags.</li>
+      <li>The list has three views (Text, Images, Pinned), a search box, category filters, date filters (last hour, today, yesterday, this week, this month, or since a date you choose), pin, copy, open a link, delete, and a button to paste from the clipboard. It draws in small batches so it stays fast.</li>
+      <li><strong>Limits:</strong> 1,000 texts and 300 images, with pinned items never counted. A notification warns you at 80% and when the limit is reached. A text you just deleted is not saved again for 5 hours. Copied images are re-encoded as JPEG (quality 88%) to take less room, and the original is kept when the JPEG would be heavier. <strong>Export all as ZIP</strong> from the clipboard.</li>
+      <li><strong>Notes</strong>: several notes in tabs, a Markdown toolbar (bold, italic, heading, subheading, list, quote, code), a rendered preview, colours, pin, rename, "Show all notes", and export as .txt or .md.</li>
+      <li><strong>To-do</strong>: tasks with a priority (urgent, medium, normal, low), search, filters (all, to do, done), sort by priority, a counter, "Clear completed" and "Clear all".</li>
+      <li><strong>Calculator</strong>: a keypad and a typing field, with a history. It reads your expression without <code>eval</code>, so it works under the browser's strict rules.</li>
+      <li><strong>Converter</strong>: 8 unit categories (length and more) and 38 currencies (including EUR, USD, GBP, JPY, CHF, CAD, MXN, BRL, COP, CLP, ARS and others). Rates come from open.er-api.com, are refreshed by themselves, and can be refreshed by a button. A swap button flips the two sides.</li>
+      <li><strong>Colour picker</strong>: an eyedropper that picks a colour from anywhere on the screen in one click, or pick by hand. HEX, RGB and HSL values, four palettes (Material, Pastel, Neon, Dark), pinned colours and a history.</li>
+      <li><strong>Password generator</strong>: length from 3 to 128, how many to make, upper case, lower case, digits, symbols, "exclude similar characters", auto-copy, a strength meter and a history you can clear.</li>
+      <li><strong>Timer</strong>: hours, minutes, seconds, presets (1, 5, 10, 25 minutes for Pomodoro, 30 minutes, 1 hour). The ring changes colour from red to green as time passes, and a notification rings when it ends, even if the window is closed. <strong>Stopwatch</strong> with laps.</li>
+      <li><strong>Music player</strong>: drag and drop your audio files (MP3, WAV, MP4, OGG, FLAC) into a playlist. Play, pause, previous, next, a progress bar, volume, mute and repeat. The sound is played by the background, so it keeps going when the window closes, and your playlist, track, volume and repeat are remembered.</li>
+      <li><strong>Text shortcuts</strong>: a short code such as <code>!mail</code> and its replacement text; typed on a web page, the code turns into the full text. Adding the same code again updates it.</li>
+      <li><strong>Image compressor</strong>: drop images or a whole folder, up to 100 at a time (JPG, PNG, WEBP, SVG, GIF, BMP, and also PPM, PGM, PBM, PNM, TGA and PCX, which WorkBox reads by itself). PNG is reduced by lowering the colour palette. Optional conversion of the format, a progress bar, a summary of the space saved, and a ZIP of all results.</li>
+      <li><strong>QR code scanner</strong>: draw a rectangle on the page, import an image or paste one. The content is shown with a badge (link, email...), with Copy and Open link. A link without https:// is fixed, and anything that is not http or https is never opened.</li>
+      <li><strong>AI-free search</strong> (one engine at a time): Google (the AI Overview, "Things to know" and the "AI Mode" tab are hidden), Bing (<code>copilot=off</code>, and the Copilot box is hidden), Brave Search (<code>summary=0</code>), DuckDuckGo (<code>assist=false</code> and more), Qwant (<code>llm=0</code>). WorkBox guesses your browser and your default search engine, and a link opens the browser's own search settings.</li>
+      <li><strong>Right-click menu</strong>: select a text, then WorkBox &gt; Add to notes, Copy to clipboard or Create a task.</li>
+      <li><strong>Lock with a password</strong> (4 characters or more). The window asks for it each time it opens. At setup you get a recovery code shaped like <code>XXXX-XXXX-XXXX</code>; "Forgot password?" with that code removes the lock. Turning the lock off asks for the password. This version protects the opening of the window; your data is not yet encrypted.</li>
+      <li><strong>Sharing &amp; Transfer</strong>: export your notes, clipboard history, tasks and pinned colours, with their dates, as a <code>workbox-data://</code> link or as a .json file, and import them from a link or a file. The link holds the data itself, compressed, so it can be pasted in a message: <strong>no server, nothing expires</strong>. An import adds to what already exists and never erases. Items marked Private or Password are left out of the export.</li>
+      <li>A bottom bar and a grid menu ("More tools") to move between the tools. WorkBox remembers the tool you were on and where you scrolled.</li>
+      <li>Everything stays on your device. No account, no tracking. The only address WorkBox contacts is open.er-api.com, for currency rates.</li>
+    </ul>
+  </section>
+
+  <p class="meta" id="note-old-versions" style="margin-top:38px;">A small note: versions 1.0.1, 1.0.2 and 1.0.3 were no longer available once they were replaced. Their files were recovered afterwards from Socket, a security site that keeps a copy of published extensions, so their history could be written down here. That is also why two of them have no date.</p>
+
+  <footer>
+    <nav><a href="terms.html">Terms of Use</a><a href="privacy.html">Privacy Policy</a></nav>
+    <p class="copy">© 2026 WorkBox. All rights reserved.</p>
+  </footer>
+</main>
+<script src="copy-md.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{
+  "manifest_version": 3,
+  "name": "WorkBox – All-in-One Toolbox",
+  "version": "1.2.0",
+  "minimum_chrome_version": "116",
+  "description": "Clipboard history, password generator, QR scanner, notes, converter and more in one toolbox. 100% local, no account.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "clipboardWrite",
+    "clipboardRead",
+    "alarms",
+    "offscreen",
+    "notifications",
+    "contextMenus",
+    "scripting",
+    "webNavigation",
+    "favicon",
+    "tabGroups"
+  ],
+  "optional_permissions": [
+    "bookmarks"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+W",
+        "mac": "Alt+W"
+      },
+      "description": "Open WorkBox"
+    },
+    "scan-qr-area": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Scan a QR code: select an area on the page"
+    },
+    "open-clipboard": {
+      "suggested_key": {
+        "default": "Alt+C",
+        "mac": "Alt+C"
+      },
+      "description": "Open WorkBox on the clipboard history"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/content.js",
+        "content/expander.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "lib/protection.js",
+        "content/protection-content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https: http: data:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none';"
+  }
+}
